@@ -1,5 +1,6 @@
 // MetabolicOS — Prisma schema
-// Foundation module: profiles only. Other modules add their own models in later sessions.
+// Foundation + Weight Loss (Module 2) + Nutrition (Module 3).
+// Other modules add their own models in later sessions.
 
 generator client {
   provider = "prisma-client-js"
@@ -14,19 +15,19 @@ datasource db {
 // Extends Supabase auth.users (id references auth.users.id).
 // Auth itself is handled by Supabase; this stores app profile data.
 model Profile {
-  id            String    @id @db.Uuid // = auth.users.id
-  email         String    @unique
-  fullName      String?   @map("full_name")
-  dateOfBirth   DateTime? @map("date_of_birth") @db.Date
+  id            String         @id @db.Uuid // = auth.users.id
+  email         String         @unique
+  fullName      String?        @map("full_name")
+  dateOfBirth   DateTime?      @map("date_of_birth") @db.Date
   sex           Sex?
-  heightCm      Float?    @map("height_cm")
-  timezone      String    @default("UTC")
-  unitSystem    UnitSystem @default(METRIC) @map("unit_system")
-  goalWeightKg  Float?    @map("goal_weight_kg")
+  heightCm      Float?         @map("height_cm")
+  timezone      String         @default("UTC")
+  unitSystem    UnitSystem     @default(METRIC) @map("unit_system")
+  goalWeightKg  Float?         @map("goal_weight_kg")
   activityLevel ActivityLevel? @map("activity_level")
-  onboarded     Boolean   @default(false)
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  onboarded     Boolean        @default(false)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
 
   @@map("profiles")
 }
@@ -55,4 +56,164 @@ enum ActivityLevel {
   VERY_ACTIVE
 
   @@map("activity_level")
+}
+
+// =====================================================================
+// Weight Loss (Module 2)
+// Single flexible body_metrics table covers every tracked series from
+// PRD § Weight Loss (weight, body fat, lean mass, and measurements).
+// =====================================================================
+model BodyMetric {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String     @map("user_id") @db.Uuid
+  metricType MetricType @map("metric_type")
+  value      Float
+  unit       String
+  recordedAt DateTime   @map("recorded_at")
+  notes      String?
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  @@index([userId, metricType, recordedAt])
+  @@map("body_metrics")
+}
+
+model ProgressPhoto {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  storagePath String   @map("storage_path")
+  takenAt     DateTime @map("taken_at")
+  weightKg    Float?   @map("weight_kg")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId, takenAt])
+  @@map("progress_photos")
+}
+
+model Goal {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String     @map("user_id") @db.Uuid
+  metricType  MetricType @map("metric_type")
+  targetValue Float      @map("target_value")
+  unit        String
+  startValue  Float?     @map("start_value")
+  targetDate  DateTime?  @map("target_date") @db.Date
+  achieved    Boolean    @default(false)
+  achievedAt  DateTime?  @map("achieved_at")
+  notes       String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@index([userId, metricType])
+  @@map("goals")
+}
+
+enum MetricType {
+  WEIGHT
+  BODY_FAT
+  LEAN_MASS
+  WAIST
+  CHEST
+  ARMS
+  LEGS
+  NECK
+  HIP
+
+  @@map("metric_type")
+}
+
+// =====================================================================
+// Nutrition (Module 3)
+// Core food logging: a per-user food library (manual entries +
+// favorites), day-based food logs that snapshot nutrition at log time,
+// and one daily macro-target row per user. Barcode / USDA / restaurant
+// integrations land in a follow-up session via FoodSource.
+// =====================================================================
+model FoodItem {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String     @map("user_id") @db.Uuid
+  name        String
+  brand       String?
+  servingSize Float      @map("serving_size")
+  servingUnit String     @map("serving_unit")
+  calories    Float
+  proteinG    Float      @map("protein_g")
+  carbsG      Float      @map("carbs_g")
+  fatG        Float      @map("fat_g")
+  fiberG      Float?     @map("fiber_g")
+  sugarG      Float?     @map("sugar_g")
+  sodiumMg    Float?     @map("sodium_mg")
+  isFavorite  Boolean    @default(false) @map("is_favorite")
+  source      FoodSource @default(MANUAL)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  logs FoodLog[]
+
+  @@index([userId, name])
+  @@index([userId, isFavorite])
+  @@map("food_items")
+}
+
+// One logged eating event. Nutrition values are snapshotted per serving
+// at log time so later edits/deletes in the food library never rewrite
+// history; foodItemId is only a soft pointer back to the library.
+model FoodLog {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  foodItemId  String?   @map("food_item_id") @db.Uuid
+  mealType    MealType  @map("meal_type")
+  loggedOn    DateTime  @map("logged_on") @db.Date
+  servings    Float     @default(1)
+  name        String
+  brand       String?
+  servingSize Float     @map("serving_size")
+  servingUnit String    @map("serving_unit")
+  calories    Float
+  proteinG    Float     @map("protein_g")
+  carbsG      Float     @map("carbs_g")
+  fatG        Float     @map("fat_g")
+  fiberG      Float?    @map("fiber_g")
+  sugarG      Float?    @map("sugar_g")
+  sodiumMg    Float?    @map("sodium_mg")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  foodItem FoodItem? @relation(fields: [foodItemId], references: [id], onDelete: SetNull)
+
+  @@index([userId, loggedOn])
+  @@map("food_logs")
+}
+
+// Daily macro targets — a single row per user, upserted from the
+// macro/protein calculator or manual edits.
+model NutritionTarget {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  calories  Float
+  proteinG  Float    @map("protein_g")
+  carbsG    Float    @map("carbs_g")
+  fatG      Float    @map("fat_g")
+  fiberG    Float?   @map("fiber_g")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("nutrition_targets")
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+
+  @@map("meal_type")
+}
+
+enum FoodSource {
+  MANUAL
+  BARCODE
+  USDA
+  RESTAURANT
+
+  @@map("food_source")
 }
