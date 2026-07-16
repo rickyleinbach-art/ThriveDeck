@@ -1,5 +1,5 @@
 // MetabolicOS — Prisma schema
-// Foundation + Weight Loss (Module 2) + Nutrition (Module 3).
+// Foundation + Weight Loss (Module 2) + Nutrition (Module 3) + Exercise (Module 4).
 // Other modules add their own models in later sessions.
 
 generator client {
@@ -216,4 +216,140 @@ enum FoodSource {
   RESTAURANT
 
   @@map("food_source")
+}
+
+// =====================================================================
+// Exercise (Module 4)
+// Exercise library (seeded system rows with null userId + per-user
+// custom rows), reusable workout templates (the workout builder), and
+// workout sessions with per-set logs. Sets snapshot the exercise name
+// and category at log time so library edits never rewrite history.
+// =====================================================================
+model Exercise {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String?          @map("user_id") @db.Uuid // null = shared seed row
+  name        String
+  category    ExerciseCategory
+  muscleGroup MuscleGroup?     @map("muscle_group")
+  equipment   String?
+  metValue    Float?           @map("met_value") // for calorie estimates
+  description String?
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  templateExercises WorkoutTemplateExercise[]
+  sets              WorkoutSet[]
+
+  @@index([userId, name])
+  @@index([category])
+  @@map("exercises")
+}
+
+model WorkoutTemplate {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  exercises WorkoutTemplateExercise[]
+  workouts  Workout[]
+
+  @@index([userId, name])
+  @@map("workout_templates")
+}
+
+model WorkoutTemplateExercise {
+  id                String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String  @map("user_id") @db.Uuid
+  templateId        String  @map("template_id") @db.Uuid
+  exerciseId        String  @map("exercise_id") @db.Uuid
+  position          Int
+  targetSets        Int?    @map("target_sets")
+  targetReps        Int?    @map("target_reps")
+  targetWeightKg    Float?  @map("target_weight_kg")
+  targetDurationMin Float?  @map("target_duration_min")
+  restSeconds       Int     @default(90) @map("rest_seconds")
+
+  template WorkoutTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  exercise Exercise        @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([templateId, position])
+  @@map("workout_template_exercises")
+}
+
+// One workout session. A row with completedAt = null is the in-progress
+// workout; the workout timer is derived from startedAt, never stored.
+model Workout {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  templateId     String?   @map("template_id") @db.Uuid
+  name           String
+  startedAt      DateTime  @default(now()) @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  durationMin    Float?    @map("duration_min")
+  caloriesBurned Float?    @map("calories_burned")
+  notes          String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  template WorkoutTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  sets     WorkoutSet[]
+
+  @@index([userId, startedAt])
+  @@map("workouts")
+}
+
+// One logged set (strength: reps + weight; cardio/duration work:
+// duration + optional distance). exerciseName/category are snapshots;
+// exerciseId is only a soft pointer back to the library.
+model WorkoutSet {
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String           @map("user_id") @db.Uuid
+  workoutId    String           @map("workout_id") @db.Uuid
+  exerciseId   String?          @map("exercise_id") @db.Uuid
+  exerciseName String           @map("exercise_name")
+  category     ExerciseCategory
+  setNumber    Int              @map("set_number")
+  reps         Int?
+  weightKg     Float?           @map("weight_kg")
+  durationMin  Float?           @map("duration_min")
+  distanceKm   Float?           @map("distance_km")
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  workout  Workout   @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exercise Exercise? @relation(fields: [exerciseId], references: [id], onDelete: SetNull)
+
+  @@index([workoutId])
+  @@index([userId, exerciseName])
+  @@map("workout_sets")
+}
+
+enum ExerciseCategory {
+  STRENGTH
+  CARDIO
+  HIIT
+  WALKING
+  RUNNING
+  CYCLING
+  SWIMMING
+  YOGA
+  MOBILITY
+  STRETCHING
+  RECOVERY
+
+  @@map("exercise_category")
+}
+
+enum MuscleGroup {
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  LEGS
+  GLUTES
+  CORE
+  FULL_BODY
+
+  @@map("muscle_group")
 }
