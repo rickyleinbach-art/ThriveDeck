@@ -1,0 +1,45 @@
+# Dependencies & build output
+node_modules/
+.next/
+dist/
+build/
+out/
+
+# Env & secrets
+.env
+.env.*
+*.pem
+
+# Lockfiles (large, rarely needed in context)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Prisma generated client
+node_modules/.prisma/
+prisma/generated/
+
+# Logs & cache
+*.log
+.cache/
+coverage/
+.turbo/
+
+# Assets / binaries
+public/*.png
+public/*.jpg
+public/*.jpeg
+public/*.svg
+public/*.mp4
+*.ico
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# Deploy
+.vercel/
+.netlify/
+
+# Misc
+.DS_Store

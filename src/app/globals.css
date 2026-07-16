@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Surfaces — warm neutral, not stark white */
+    --background: 40 30% 99%;
+    --foreground: 200 18% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 18% 12%;
+
+    /* Signature: deep teal-green = vitality, clinical calm */
+    --primary: 173 64% 30%;
+    --primary-foreground: 160 40% 98%;
+
+    --secondary: 168 30% 94%;
+    --secondary-foreground: 173 45% 22%;
+
+    --muted: 200 16% 95%;
+    --muted-foreground: 200 10% 42%;
+
+    --accent: 168 40% 92%;
+    --accent-foreground: 173 45% 22%;
+
+    /* Semantic */
+    --success: 152 55% 40%;
+    --warning: 38 92% 50%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 200 16% 90%;
+    --input: 200 16% 88%;
+    --ring: 173 64% 30%;
+
+    --radius: 0.875rem;
+  }
+
+  .dark {
+    --background: 200 24% 8%;
+    --foreground: 160 20% 94%;
+    --card: 200 22% 11%;
+    --card-foreground: 160 20% 94%;
+
+    --primary: 168 58% 45%;
+    --primary-foreground: 200 30% 8%;
+
+    --secondary: 200 18% 16%;
+    --secondary-foreground: 160 20% 90%;
+
+    --muted: 200 16% 16%;
+    --muted-foreground: 200 10% 62%;
+
+    --accent: 200 18% 18%;
+    --accent-foreground: 160 20% 90%;
+
+    --success: 152 50% 48%;
+    --warning: 38 90% 55%;
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 200 16% 20%;
+    --input: 200 16% 22%;
+    --ring: 168 58% 45%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+  }
+}

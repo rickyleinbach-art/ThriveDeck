@@ -1,0 +1,58 @@
+// MetabolicOS — Prisma schema
+// Foundation module: profiles only. Other modules add their own models in later sessions.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Extends Supabase auth.users (id references auth.users.id).
+// Auth itself is handled by Supabase; this stores app profile data.
+model Profile {
+  id            String    @id @db.Uuid // = auth.users.id
+  email         String    @unique
+  fullName      String?   @map("full_name")
+  dateOfBirth   DateTime? @map("date_of_birth") @db.Date
+  sex           Sex?
+  heightCm      Float?    @map("height_cm")
+  timezone      String    @default("UTC")
+  unitSystem    UnitSystem @default(METRIC) @map("unit_system")
+  goalWeightKg  Float?    @map("goal_weight_kg")
+  activityLevel ActivityLevel? @map("activity_level")
+  onboarded     Boolean   @default(false)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+enum Sex {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+
+  @@map("sex")
+}
+
+enum UnitSystem {
+  METRIC
+  IMPERIAL
+
+  @@map("unit_system")
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHT
+  MODERATE
+  ACTIVE
+  VERY_ACTIVE
+
+  @@map("activity_level")
+}
