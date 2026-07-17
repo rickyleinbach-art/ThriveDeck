@@ -121,7 +121,11 @@ export default async function PeptidesPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card title="Log an injection">
-          <LogInjectionForm peptides={activePeptides} />
+          {/* Keyed so the form's defaults re-initialize when the peptide set changes. */}
+          <LogInjectionForm
+            key={activePeptides.map((p) => p.id).join(",")}
+            peptides={activePeptides}
+          />
         </Card>
 
         <Card title="Reminders">
