@@ -30,6 +30,16 @@ export const CATEGORY_LABELS: Record<ExerciseCategory, string> = {
   RECOVERY: "Recovery",
 };
 
+// Difficulty of the shared guided programs (workout_templates seed rows).
+export const DIFFICULTIES = ["BEGINNER", "INTERMEDIATE", "ADVANCED"] as const;
+export type Difficulty = (typeof DIFFICULTIES)[number];
+
+export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
+  BEGINNER: "Beginner",
+  INTERMEDIATE: "Intermediate",
+  ADVANCED: "Advanced",
+};
+
 export const MUSCLE_GROUPS = [
   "CHEST",
   "BACK",

@@ -206,11 +206,13 @@ export async function startWorkout(
   const templateId = parsed.data.templateId ?? null;
 
   if (templateId) {
+    // Guided programs (user_id null) are startable by anyone; user
+    // templates only by their owner.
     const { data: template, error } = await supabase
       .from("workout_templates")
       .select("name")
       .eq("id", templateId)
-      .eq("user_id", user.id)
+      .or(`user_id.is.null,user_id.eq.${user.id}`)
       .single();
     if (error || !template) return { success: false, error: "Template not found" };
     name = parsed.data.name?.trim() || template.name;

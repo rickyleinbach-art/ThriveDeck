@@ -16,8 +16,13 @@ import {
   getWorkoutTemplates,
 } from "@/lib/exercise/queries";
 import { deleteWorkoutTemplateFormAction } from "@/lib/exercise/actions";
-import { CATEGORY_LABELS } from "@/lib/validations/exercise";
+import {
+  CATEGORY_LABELS,
+  DIFFICULTIES,
+  DIFFICULTY_LABELS,
+} from "@/lib/validations/exercise";
 import { StartWorkoutForm } from "./start-workout-form";
+import { StartProgramButton } from "./start-program-button";
 
 function round(value: number): string {
   return Math.round(value).toLocaleString();
@@ -50,6 +55,8 @@ export default async function ExercisePage() {
   );
   const unit = weightUnit(unitSystem);
   const recent = history.slice(0, 5);
+  const myTemplates = templates.filter((template) => template.isCustom);
+  const guidedPrograms = templates.filter((template) => !template.isCustom);
 
   return (
     <div className="space-y-6">
@@ -125,18 +132,18 @@ export default async function ExercisePage() {
         </Card>
 
         <Card title="My workout templates" className="lg:col-span-2">
-          {templates.length === 0 ? (
+          {myTemplates.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No templates yet.{" "}
               <Link href="/exercise/builder" className="text-primary hover:underline">
                 Build your first workout
-              </Link>
-              .
+              </Link>{" "}
+              or follow a guided program below.
             </p>
           ) : (
             <div className="space-y-3">
               <ul className="divide-y divide-border rounded-lg border border-border">
-                {templates.map((template) => (
+                {myTemplates.map((template) => (
                   <li
                     key={template.id}
                     className="flex items-center justify-between gap-3 px-3 py-2"
@@ -174,6 +181,51 @@ export default async function ExercisePage() {
           )}
         </Card>
       </div>
+
+      {guidedPrograms.length > 0 && (
+        <Card title="Guided programs">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            {DIFFICULTIES.map((difficulty) => {
+              const programs = guidedPrograms.filter(
+                (program) => program.difficulty === difficulty
+              );
+              if (programs.length === 0) return null;
+              return (
+                <div key={difficulty}>
+                  <h3 className="mb-2 text-sm font-medium">
+                    {DIFFICULTY_LABELS[difficulty]}
+                  </h3>
+                  <ul className="divide-y divide-border rounded-lg border border-border">
+                    {programs.map((program) => (
+                      <li key={program.id} className="space-y-1 px-3 py-2.5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium">{program.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {program.exercises
+                                .map((exercise) => exercise.exerciseName)
+                                .join(" · ")}
+                            </p>
+                          </div>
+                          <StartProgramButton
+                            templateId={program.id}
+                            disabled={!!activeWorkout}
+                          />
+                        </div>
+                        {program.notes && (
+                          <p className="text-xs text-muted-foreground">
+                            {program.notes}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       <Card title="Recent workouts">
         {recent.length === 0 ? (

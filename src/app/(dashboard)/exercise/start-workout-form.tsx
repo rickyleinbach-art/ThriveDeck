@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { startWorkout } from "@/lib/exercise/actions";
+import { DIFFICULTY_LABELS } from "@/lib/validations/exercise";
 import type { WorkoutTemplate } from "@/lib/exercise/types";
 
 const BLANK = "__blank__";
@@ -26,6 +27,8 @@ export function StartWorkoutForm({
 
   const isBlank = templateId === BLANK;
   const selected = templates.find((template) => template.id === templateId);
+  const myTemplates = templates.filter((template) => template.isCustom);
+  const guidedPrograms = templates.filter((template) => !template.isCustom);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,12 +58,28 @@ export function StartWorkoutForm({
           value={templateId}
           onChange={(e) => setTemplateId(e.target.value)}
         >
-          {templates.map((template) => (
-            <option key={template.id} value={template.id}>
-              {template.name} ({template.exercises.length} exercise
-              {template.exercises.length === 1 ? "" : "s"})
-            </option>
-          ))}
+          {myTemplates.length > 0 && (
+            <optgroup label="My templates">
+              {myTemplates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name} ({template.exercises.length} exercise
+                  {template.exercises.length === 1 ? "" : "s"})
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {guidedPrograms.length > 0 && (
+            <optgroup label="Guided programs">
+              {guidedPrograms.map((program) => (
+                <option key={program.id} value={program.id}>
+                  {program.name}
+                  {program.difficulty
+                    ? ` — ${DIFFICULTY_LABELS[program.difficulty]}`
+                    : ""}
+                </option>
+              ))}
+            </optgroup>
+          )}
           <option value={BLANK}>Blank workout…</option>
         </Select>
         {selected && (

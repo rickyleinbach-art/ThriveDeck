@@ -36,6 +36,7 @@ export async function getExercises(): Promise<Exercise[]> {
   return (data as ExerciseRow[]).map(mapExercise);
 }
 
+// Shared guided programs (user_id null) plus the user's own templates.
 export async function getWorkoutTemplates(): Promise<WorkoutTemplate[]> {
   const supabase = await createClient();
   const {
@@ -48,7 +49,7 @@ export async function getWorkoutTemplates(): Promise<WorkoutTemplate[]> {
     .select(
       "*, workout_template_exercises(*, exercise:exercises(id, name, category))"
     )
-    .eq("user_id", user.id)
+    .or(`user_id.is.null,user_id.eq.${user.id}`)
     .order("name", { ascending: true });
 
   if (error || !data) return [];

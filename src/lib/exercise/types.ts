@@ -1,4 +1,5 @@
 import type {
+  Difficulty,
   ExerciseCategory,
   MuscleGroup,
 } from "@/lib/validations/exercise";
@@ -73,9 +74,10 @@ export interface TemplateExercise {
 
 export interface WorkoutTemplateRow {
   id: string;
-  user_id: string;
+  user_id: string | null;
   name: string;
   notes: string | null;
+  difficulty: Difficulty | null;
   created_at: string;
   updated_at: string;
   workout_template_exercises: TemplateExerciseRow[];
@@ -85,6 +87,8 @@ export interface WorkoutTemplate {
   id: string;
   name: string;
   notes: string | null;
+  difficulty: Difficulty | null; // set on shared guided programs
+  isCustom: boolean; // user-built (user_id set) vs shared guided program
   exercises: TemplateExercise[];
 }
 
@@ -93,6 +97,8 @@ export function mapWorkoutTemplate(row: WorkoutTemplateRow): WorkoutTemplate {
     id: row.id,
     name: row.name,
     notes: row.notes,
+    difficulty: row.difficulty,
+    isCustom: row.user_id !== null,
     exercises: row.workout_template_exercises
       .slice()
       .sort((a, b) => a.position - b.position)

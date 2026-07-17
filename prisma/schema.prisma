@@ -1,5 +1,6 @@
 // MetabolicOS — Prisma schema
-// Foundation + Weight Loss (Module 2) + Nutrition (Module 3) + Exercise (Module 4).
+// Foundation + Weight Loss (Module 2) + Nutrition (Module 3) + Exercise (Module 4)
+// + Peptides (Module 5).
 // Other modules add their own models in later sessions.
 
 generator client {
@@ -264,13 +265,16 @@ model Exercise {
   @@map("exercises")
 }
 
+// Templates with userId = null are shared guided programs (seeded,
+// tagged with a difficulty); user-built templates have userId set.
 model WorkoutTemplate {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  name      String
-  notes     String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String?     @map("user_id") @db.Uuid // null = shared guided program
+  name       String
+  notes      String?
+  difficulty Difficulty?
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
 
   exercises WorkoutTemplateExercise[]
   workouts  Workout[]
@@ -281,7 +285,7 @@ model WorkoutTemplate {
 
 model WorkoutTemplateExercise {
   id                String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId            String  @map("user_id") @db.Uuid
+  userId            String? @map("user_id") @db.Uuid // null = row of a shared guided program
   templateId        String  @map("template_id") @db.Uuid
   exerciseId        String  @map("exercise_id") @db.Uuid
   position          Int
@@ -360,6 +364,14 @@ enum ExerciseCategory {
   @@map("exercise_category")
 }
 
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+
+  @@map("difficulty")
+}
+
 enum MuscleGroup {
   CHEST
   BACK
@@ -372,4 +384,200 @@ enum MuscleGroup {
   FULL_BODY
 
   @@map("muscle_group")
+}
+
+// =====================================================================
+// Peptides (Module 5) — SAFETY CRITICAL
+// The app only RECORDS what the user's licensed provider prescribed.
+// No dose/frequency value in this module is ever computed, defaulted,
+// or suggested by the app. See CLAUDE.md § Health & safety rules.
+// History rows (injections, side effects, journal) snapshot the
+// peptide name and keep only a soft pointer, so deleting a peptide
+// never rewrites history.
+// =====================================================================
+model CareProvider {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  kind      CareProviderKind
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  notes     String?
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  prescribedPeptides Peptide[] @relation("PeptideProvider")
+  suppliedPeptides   Peptide[] @relation("PeptidePharmacy")
+
+  @@index([userId, kind])
+  @@map("care_providers")
+}
+
+model Peptide {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String        @map("user_id") @db.Uuid
+  name          String
+  status        PeptideStatus @default(ACTIVE)
+  doseAmount    Float?        @map("dose_amount") // as prescribed, user-entered
+  doseUnit      DoseUnit?     @map("dose_unit")
+  frequency     String? // free text as the provider phrased it
+  startedOn     DateTime?     @map("started_on") @db.Date
+  endedOn       DateTime?     @map("ended_on") @db.Date
+  lotNumber     String?       @map("lot_number")
+  expiresOn     DateTime?     @map("expires_on") @db.Date
+  providerId    String?       @map("provider_id") @db.Uuid
+  pharmacyId    String?       @map("pharmacy_id") @db.Uuid
+  protocolNotes String?       @map("protocol_notes")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  provider       CareProvider?         @relation("PeptideProvider", fields: [providerId], references: [id], onDelete: SetNull)
+  pharmacy       CareProvider?         @relation("PeptidePharmacy", fields: [pharmacyId], references: [id], onDelete: SetNull)
+  injections     PeptideInjection[]
+  reminders      PeptideReminder[]
+  sideEffects    PeptideSideEffect[]
+  journalEntries PeptideJournalEntry[]
+
+  @@index([userId, status])
+  @@map("peptides")
+}
+
+// Injection history, including MISSED doses. Dose fields snapshot what
+// the user entered at log time.
+model PeptideInjection {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String          @map("user_id") @db.Uuid
+  peptideId   String?         @map("peptide_id") @db.Uuid
+  peptideName String          @map("peptide_name")
+  status      InjectionStatus @default(LOGGED)
+  injectedAt  DateTime        @map("injected_at")
+  doseAmount  Float?          @map("dose_amount")
+  doseUnit    DoseUnit?       @map("dose_unit")
+  site        InjectionSite?
+  lotNumber   String?         @map("lot_number")
+  notes       String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  peptide Peptide? @relation(fields: [peptideId], references: [id], onDelete: SetNull)
+
+  @@index([userId, injectedAt])
+  @@index([peptideId])
+  @@map("peptide_injections")
+}
+
+// Dose / refill / lab / appointment reminders. Marking a repeating
+// reminder done advances dueAt by repeatEveryDays; a one-off deactivates.
+model PeptideReminder {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String       @map("user_id") @db.Uuid
+  peptideId       String?      @map("peptide_id") @db.Uuid
+  kind            ReminderKind
+  title           String
+  dueAt           DateTime     @map("due_at")
+  repeatEveryDays Int?         @map("repeat_every_days")
+  active          Boolean      @default(true)
+  notes           String?
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  peptide Peptide? @relation(fields: [peptideId], references: [id], onDelete: SetNull)
+
+  @@index([userId, active, dueAt])
+  @@map("peptide_reminders")
+}
+
+model PeptideSideEffect {
+  id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String             @map("user_id") @db.Uuid
+  peptideId   String?            @map("peptide_id") @db.Uuid
+  peptideName String?            @map("peptide_name")
+  occurredAt  DateTime           @map("occurred_at")
+  severity    SideEffectSeverity
+  description String
+  createdAt   DateTime           @default(now()) @map("created_at")
+
+  peptide Peptide? @relation(fields: [peptideId], references: [id], onDelete: SetNull)
+
+  @@index([userId, occurredAt])
+  @@map("peptide_side_effects")
+}
+
+model PeptideJournalEntry {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  peptideId   String?  @map("peptide_id") @db.Uuid
+  peptideName String?  @map("peptide_name")
+  entryDate   DateTime @map("entry_date") @db.Date
+  content     String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  peptide Peptide? @relation(fields: [peptideId], references: [id], onDelete: SetNull)
+
+  @@index([userId, entryDate])
+  @@map("peptide_journal_entries")
+}
+
+enum CareProviderKind {
+  PROVIDER
+  PHARMACY
+
+  @@map("care_provider_kind")
+}
+
+enum PeptideStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+
+  @@map("peptide_status")
+}
+
+enum DoseUnit {
+  MG
+  MCG
+  IU
+  ML
+  UNITS
+
+  @@map("dose_unit")
+}
+
+enum InjectionStatus {
+  LOGGED
+  MISSED
+
+  @@map("injection_status")
+}
+
+enum InjectionSite {
+  ABDOMEN_LEFT
+  ABDOMEN_RIGHT
+  THIGH_LEFT
+  THIGH_RIGHT
+  GLUTE_LEFT
+  GLUTE_RIGHT
+  ARM_LEFT
+  ARM_RIGHT
+  OTHER
+
+  @@map("injection_site")
+}
+
+enum ReminderKind {
+  DOSE
+  REFILL
+  LAB
+  APPOINTMENT
+
+  @@map("reminder_kind")
+}
+
+enum SideEffectSeverity {
+  MILD
+  MODERATE
+  SEVERE
+
+  @@map("side_effect_severity")
 }
