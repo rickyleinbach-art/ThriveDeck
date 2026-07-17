@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
+  catalogSearchSchema,
   foodItemSchema,
   logFoodSchema,
   nutritionTargetSchema,
@@ -10,7 +11,12 @@ import {
   type LogFoodInput,
   type NutritionTargetInput,
 } from "@/lib/validations/nutrition";
-import type { FoodItemRow } from "@/lib/nutrition/types";
+import {
+  mapCatalogFood,
+  type CatalogFood,
+  type CatalogFoodRow,
+  type FoodItemRow,
+} from "@/lib/nutrition/types";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
@@ -131,6 +137,28 @@ export async function deleteFoodItemFormAction(id: string): Promise<void> {
   await deleteFoodItem(id);
 }
 
+// Type-ahead search over the shared USDA catalog. Called from the log-food
+// form as the user types; RLS limits it to signed-in users.
+export async function searchCatalogFoods(query: string): Promise<CatalogFood[]> {
+  const parsed = catalogSearchSchema.safeParse({ query });
+  if (!parsed.success) return [];
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // Escape ilike wildcards so users can search for literal text.
+  const term = parsed.data.query.replace(/[%_\\]/g, "\\$&");
+  const { data, error } = await supabase.rpc("search_catalog_foods", {
+    search_term: term,
+  });
+
+  if (error || !data) return [];
+  return (data as CatalogFoodRow[]).map(mapCatalogFood);
+}
+
 export async function logFood(input: LogFoodInput): Promise<ActionResult> {
   const parsed = logFoodSchema.safeParse(input);
   if (!parsed.success) {
@@ -172,6 +200,39 @@ export async function logFood(input: LogFoodInput): Promise<ActionResult> {
       sugar_g: item.sugar_g,
       sodium_mg: item.sodium_mg,
     };
+  } else if (parsed.data.catalogFoodId) {
+    // Same server-side re-read for catalog picks — catalog nutrition is
+    // per 100 g, so the snapshot serving is 100 g.
+    const { data, error } = await supabase
+      .from("catalog_foods")
+      .select("*")
+      .eq("id", parsed.data.catalogFoodId)
+      .single();
+
+    if (error || !data) return { success: false, error: "Food not found" };
+    const item = data as CatalogFoodRow;
+    snapshot = {
+      name: item.name,
+      brand: null,
+      serving_size: 100,
+      serving_unit: "g",
+      calories: item.calories,
+      protein_g: item.protein_g,
+      carbs_g: item.carbs_g,
+      fat_g: item.fat_g,
+      fiber_g: item.fiber_g,
+      sugar_g: item.sugar_g,
+      sodium_mg: item.sodium_mg,
+    };
+
+    if (parsed.data.saveToLibrary) {
+      const { data: created } = await supabase
+        .from("food_items")
+        .insert({ user_id: user.id, source: "USDA", ...snapshot })
+        .select("id")
+        .single();
+      foodItemId = created?.id ?? null;
+    }
   } else {
     const custom = parsed.data.custom!;
     snapshot = nutritionColumns(custom);

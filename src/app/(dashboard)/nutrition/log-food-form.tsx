@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,16 +14,30 @@ import {
   type MealType,
   type ServingUnit,
 } from "@/lib/validations/nutrition";
-import { logFood } from "@/lib/nutrition/actions";
-import type { FoodItem } from "@/lib/nutrition/types";
+import { logFood, searchCatalogFoods } from "@/lib/nutrition/actions";
+import type { CatalogFood, FoodItem } from "@/lib/nutrition/types";
 
 const CUSTOM = "__custom__";
+const CATALOG = "__catalog__";
+
+function facts(food: { calories: number; proteinG: number; carbsG: number; fatG: number }) {
+  return `${Math.round(food.calories)} kcal · ${Math.round(food.proteinG)}g protein · ${Math.round(
+    food.carbsG
+  )}g carbs · ${Math.round(food.fatG)}g fat`;
+}
 
 export function LogFoodForm({ date, foodItems }: { date: string; foodItems: FoodItem[] }) {
   const router = useRouter();
   const [mealType, setMealType] = useState<MealType>("BREAKFAST");
   const [foodId, setFoodId] = useState<string>(foodItems[0]?.id ?? CUSTOM);
   const [servings, setServings] = useState("1");
+
+  // Catalog search (USDA, per-100g entries).
+  const [catalogQuery, setCatalogQuery] = useState("");
+  const [catalogResults, setCatalogResults] = useState<CatalogFood[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [catalogFood, setCatalogFood] = useState<CatalogFood | null>(null);
+  const searchSeq = useRef(0);
 
   // Custom-entry fields (only used when foodId === CUSTOM).
   const [name, setName] = useState("");
@@ -39,7 +53,40 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
   const [submitting, setSubmitting] = useState(false);
 
   const isCustom = foodId === CUSTOM;
+  const isCatalog = foodId === CATALOG && catalogFood !== null;
   const selectedFood = foodItems.find((f) => f.id === foodId);
+
+  // Debounced type-ahead against the shared catalog.
+  useEffect(() => {
+    const query = catalogQuery.trim();
+    if (query.length < 2) {
+      setCatalogResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const seq = ++searchSeq.current;
+    const timer = setTimeout(async () => {
+      const results = await searchCatalogFoods(query);
+      if (seq === searchSeq.current) {
+        setCatalogResults(results);
+        setSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [catalogQuery]);
+
+  function selectCatalogFood(food: CatalogFood) {
+    setCatalogFood(food);
+    setFoodId(CATALOG);
+    setCatalogQuery("");
+    setCatalogResults([]);
+  }
+
+  function handleFoodChange(next: string) {
+    setFoodId(next);
+    if (next !== CATALOG) setCatalogFood(null);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,7 +96,8 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
       mealType,
       loggedOn: date,
       servings: Number(servings),
-      foodItemId: isCustom ? undefined : foodId,
+      foodItemId: isCustom || isCatalog ? undefined : foodId,
+      catalogFoodId: isCatalog ? catalogFood.id : undefined,
       custom: isCustom
         ? {
             name,
@@ -61,7 +109,7 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
             fatG: Number(fatG) || 0,
           }
         : undefined,
-      saveToLibrary: isCustom ? saveToLibrary : undefined,
+      saveToLibrary: isCustom || isCatalog ? saveToLibrary : undefined,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Check your entry");
@@ -84,6 +132,8 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
     setProteinG("");
     setCarbsG("");
     setFatG("");
+    setCatalogFood(null);
+    if (foodId === CATALOG) setFoodId(foodItems[0]?.id ?? CUSTOM);
     router.refresh();
   }
 
@@ -105,7 +155,9 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="servings">Servings</Label>
+          <Label htmlFor="servings">
+            {isCatalog ? "Servings (×100 g)" : "Servings"}
+          </Label>
           <Input
             id="servings"
             type="number"
@@ -120,8 +172,46 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
       </div>
 
       <div className="space-y-1.5">
+        <Label htmlFor="catalogSearch">Search food catalog</Label>
+        <Input
+          id="catalogSearch"
+          value={catalogQuery}
+          onChange={(e) => setCatalogQuery(e.target.value)}
+          placeholder="e.g. chicken breast, banana, oats…"
+          autoComplete="off"
+        />
+        {searching && <p className="text-xs text-muted-foreground">Searching…</p>}
+        {catalogResults.length > 0 && (
+          <ul className="max-h-56 divide-y divide-border overflow-y-auto rounded-lg border border-border">
+            {catalogResults.map((food) => (
+              <li key={food.id}>
+                <button
+                  type="button"
+                  onClick={() => selectCatalogFood(food)}
+                  className="w-full px-3 py-2 text-left transition hover:bg-accent"
+                >
+                  <p className="text-sm">{food.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Per 100 g: {facts(food)}
+                  </p>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {!searching && catalogQuery.trim().length >= 2 && catalogResults.length === 0 && (
+          <p className="text-xs text-muted-foreground">
+            No matches — try a simpler term, or use a custom entry below.
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
         <Label htmlFor="food">Food</Label>
-        <Select id="food" value={foodId} onChange={(e) => setFoodId(e.target.value)}>
+        <Select id="food" value={foodId} onChange={(e) => handleFoodChange(e.target.value)}>
+          {catalogFood && (
+            <option value={CATALOG}>Catalog: {catalogFood.name}</option>
+          )}
           {foodItems.map((food) => (
             <option key={food.id} value={food.id}>
               {food.isFavorite ? "★ " : ""}
@@ -133,10 +223,12 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
         </Select>
         {selectedFood && (
           <p className="text-xs text-muted-foreground">
-            Per {selectedFood.servingSize} {selectedFood.servingUnit}:{" "}
-            {Math.round(selectedFood.calories)} kcal · {Math.round(selectedFood.proteinG)}g
-            protein · {Math.round(selectedFood.carbsG)}g carbs · {Math.round(selectedFood.fatG)}g
-            fat
+            Per {selectedFood.servingSize} {selectedFood.servingUnit}: {facts(selectedFood)}
+          </p>
+        )}
+        {isCatalog && (
+          <p className="text-xs text-muted-foreground">
+            Per 100 g: {facts(catalogFood)} · USDA
           </p>
         )}
       </div>
@@ -239,17 +331,19 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
               />
             </div>
           </div>
-
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={saveToLibrary}
-              onChange={(e) => setSaveToLibrary(e.target.checked)}
-              className="h-4 w-4 rounded border-input"
-            />
-            Save to my foods for next time
-          </label>
         </div>
+      )}
+
+      {(isCustom || isCatalog) && (
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={saveToLibrary}
+            onChange={(e) => setSaveToLibrary(e.target.checked)}
+            className="h-4 w-4 rounded border-input"
+          />
+          Save to my foods for next time
+        </label>
       )}
 
       {error && <p className="text-sm text-destructive">{error}</p>}

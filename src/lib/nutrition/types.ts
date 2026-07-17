@@ -120,6 +120,51 @@ export function mapFoodLog(row: FoodLogRow): FoodLog {
   };
 }
 
+// Shared USDA catalog rows (catalog_foods). Nutrition is per 100 g.
+export interface CatalogFoodRow {
+  id: string;
+  fdc_id: number;
+  name: string;
+  category: string;
+  calories: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fiber_g: number | null;
+  sugar_g: number | null;
+  sodium_mg: number | null;
+}
+
+export interface CatalogFood {
+  id: string;
+  fdcId: number;
+  name: string;
+  category: string;
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  fiberG: number | null;
+  sugarG: number | null;
+  sodiumMg: number | null;
+}
+
+export function mapCatalogFood(row: CatalogFoodRow): CatalogFood {
+  return {
+    id: row.id,
+    fdcId: row.fdc_id,
+    name: row.name,
+    category: row.category,
+    calories: row.calories,
+    proteinG: row.protein_g,
+    carbsG: row.carbs_g,
+    fatG: row.fat_g,
+    fiberG: row.fiber_g,
+    sugarG: row.sugar_g,
+    sodiumMg: row.sodium_mg,
+  };
+}
+
 export interface NutritionTargetRow {
   id: string;
   user_id: string;

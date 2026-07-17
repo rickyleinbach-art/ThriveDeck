@@ -218,6 +218,26 @@ enum FoodSource {
   @@map("food_source")
 }
 
+// Shared, read-only food catalog seeded from USDA FoodData Central
+// (SR Legacy). Nutrition values are per 100 g. Users search it and log
+// from it directly, or copy entries into their own food_items library.
+model CatalogFood {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fdcId    Int     @unique @map("fdc_id") // USDA FoodData Central id
+  name     String
+  category String
+  calories Float
+  proteinG Float   @map("protein_g")
+  carbsG   Float   @map("carbs_g")
+  fatG     Float   @map("fat_g")
+  fiberG   Float?  @map("fiber_g")
+  sugarG   Float?  @map("sugar_g")
+  sodiumMg Float?  @map("sodium_mg")
+
+  @@index([name])
+  @@map("catalog_foods")
+}
+
 // =====================================================================
 // Exercise (Module 4)
 // Exercise library (seeded system rows with null userId + per-user

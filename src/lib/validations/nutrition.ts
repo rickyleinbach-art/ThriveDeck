@@ -44,8 +44,8 @@ export const foodItemSchema = z.object({
 
 export type FoodItemInput = z.infer<typeof foodItemSchema>;
 
-// Logging either references a library food (server re-reads and snapshots it)
-// or carries a full custom entry inline.
+// Logging references a library food or a shared catalog food (the server
+// re-reads and snapshots either one), or carries a full custom entry inline.
 export const logFoodSchema = z
   .object({
     mealType: z.enum(MEAL_TYPES),
@@ -54,13 +54,18 @@ export const logFoodSchema = z
       .regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date"),
     servings: z.number().positive("Servings must be greater than 0").max(100),
     foodItemId: z.string().uuid().optional(),
+    catalogFoodId: z.string().uuid().optional(),
     custom: foodItemSchema.optional(),
     saveToLibrary: z.boolean().optional(),
   })
-  .refine((data) => data.foodItemId || data.custom, {
+  .refine((data) => data.foodItemId || data.catalogFoodId || data.custom, {
     message: "Pick a food or enter one manually",
     path: ["foodItemId"],
   });
+
+export const catalogSearchSchema = z.object({
+  query: z.string().trim().min(2, "Type at least 2 characters").max(100),
+});
 
 export type LogFoodInput = z.infer<typeof logFoodSchema>;
 
