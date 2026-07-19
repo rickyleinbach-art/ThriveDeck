@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Sparkline } from "@/components/ui/sparkline";
+import { ScoreCard } from "@/components/charts/score-card";
 import { getBodyMetrics } from "@/lib/weight/queries";
+import { getAnalyticsData } from "@/lib/analytics/queries";
+import { computeScores } from "@/lib/analytics/scores";
 
 // Dashboard shell. Each card is a slot to be wired up as its module is built.
 // PRD § Dashboard lists the full set; these are the MVP-relevant ones first.
@@ -27,10 +30,19 @@ function formatValue(value: number, unit: string) {
 }
 
 export default async function DashboardPage() {
-  const [weightEntries, bodyFatEntries] = await Promise.all([
+  const [weightEntries, bodyFatEntries, analytics] = await Promise.all([
     getBodyMetrics({ metricType: "WEIGHT", limit: 14 }),
     getBodyMetrics({ metricType: "BODY_FAT", limit: 14 }),
+    getAnalyticsData(),
   ]);
+  const scores = computeScores(analytics);
+  const scoreCards = [
+    { label: "Wellness", ...scores.wellness },
+    { label: "Nutrition", ...scores.nutrition },
+    { label: "Fitness", ...scores.fitness },
+    { label: "Consistency", ...scores.consistency },
+    { label: "Recovery", ...scores.recovery },
+  ];
 
   const weightSpark = weightEntries
     .slice()
@@ -51,6 +63,28 @@ export default async function DashboardPage() {
           Your day at a glance. Cards fill in as you connect each part of your
           routine.
         </p>
+      </div>
+
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            This week
+          </h2>
+          <Link href="/analytics" className="text-sm text-primary hover:underline">
+            View analytics
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          {scoreCards.map((c) => (
+            <ScoreCard
+              key={c.label}
+              label={c.label}
+              value={c.value}
+              detail={c.detail}
+              href="/analytics"
+            />
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

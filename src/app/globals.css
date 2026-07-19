@@ -75,3 +75,21 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* Print / "Save as PDF": drop the app chrome and page padding so the report
+   fills the sheet cleanly. Analytics uses the browser's print-to-PDF for its
+   PDF export, and any page inherits these rules. */
+@media print {
+  aside,
+  header,
+  .print\:hidden {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+}
