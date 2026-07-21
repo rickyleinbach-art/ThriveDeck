@@ -752,3 +752,139 @@ enum ConditionStatus {
 
   @@map("condition_status")
 }
+
+// =====================================================================
+// Community (Module 9)
+// The app's first shared, multi-user data (PRD § Community). Every
+// signed-in user can read posts/comments; writes are author-scoped via
+// RLS (see prisma/migrations/0009_community.sql). authorName is a
+// write-time snapshot so we never read another user's profile, and is
+// null for anonymous content. like_count / comment_count are
+// trigger-maintained counters. Groups, friends, DMs, polls, and events
+// are deferred to a later session.
+// =====================================================================
+model CommunityPost {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  authorName   String?  @map("author_name")
+  category     CommunityCategory
+  title        String
+  body         String
+  imagePath    String?  @map("image_path")
+  isAnonymous  Boolean  @default(false) @map("is_anonymous")
+  isPinned     Boolean  @default(false) @map("is_pinned")
+  isFlagged    Boolean  @default(false) @map("is_flagged")
+  likeCount    Int      @default(0) @map("like_count")
+  commentCount Int      @default(0) @map("comment_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  comments     CommunityComment[]
+  likes        CommunityPostLike[]
+  saves        CommunitySave[]
+
+  @@index([category, createdAt])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("community_posts")
+}
+
+model CommunityComment {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId      String   @map("post_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  authorName  String?  @map("author_name")
+  body        String
+  isAnonymous Boolean  @default(false) @map("is_anonymous")
+  isFlagged   Boolean  @default(false) @map("is_flagged")
+  likeCount   Int      @default(0) @map("like_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  post        CommunityPost         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes       CommunityCommentLike[]
+
+  @@index([postId, createdAt])
+  @@map("community_comments")
+}
+
+model CommunityPostLike {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("community_post_likes")
+}
+
+model CommunityCommentLike {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  commentId String   @map("comment_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  comment   CommunityComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@map("community_comment_likes")
+}
+
+model CommunitySave {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("community_saves")
+}
+
+enum CommunityCategory {
+  WEIGHT_LOSS
+  NUTRITION
+  FITNESS
+  RECIPES
+  WALKING_CLUB
+  STRENGTH
+  CARDIO
+  PEPTIDE_EXPERIENCES
+  LIFESTYLE
+  SUCCESS_STORIES
+  PROGRESS_PICS
+  MOTIVATION
+  MEAL_PREP
+  QUESTIONS
+  GENERAL
+
+  @@map("community_category")
+}
+
+// =====================================================================
+// Challenges & Gamification (Module 10)
+// Challenge definitions live in code (src/lib/challenges/catalog.ts); this
+// table only records participation + a progress snapshot used for shared
+// leaderboards (shared-read RLS, author-scoped writes). progressValue /
+// progressPct are recomputed from the user's own logged data. Gamification
+// (XP, levels, badges, streaks) is derived at read time and stores nothing.
+// =====================================================================
+model ChallengeParticipant {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  displayName   String    @map("display_name")
+  challengeKey  String    @map("challenge_key")
+  startDate     DateTime  @map("start_date") @db.Date
+  progressValue Float     @default(0) @map("progress_value")
+  progressPct   Int       @default(0) @map("progress_pct")
+  completed     Boolean   @default(false)
+  completedAt   DateTime? @map("completed_at")
+  joinedAt      DateTime  @default(now()) @map("joined_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@unique([userId, challengeKey])
+  @@index([challengeKey, progressPct])
+  @@map("challenge_participants")
+}
