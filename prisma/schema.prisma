@@ -27,6 +27,9 @@ model Profile {
   goalWeightKg  Float?         @map("goal_weight_kg")
   activityLevel ActivityLevel? @map("activity_level")
   onboarded     Boolean        @default(false)
+  // Per-user notification-preference bag (keys defined in
+  // src/lib/validations/profile.ts). Defaults to {} and merges with app defaults.
+  notificationPrefs Json       @default("{}") @map("notification_prefs")
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
 

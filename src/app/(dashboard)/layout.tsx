@@ -5,7 +5,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV = [
   "Dashboard",
-  "Today",
   "Nutrition",
   "Exercise",
   "Weight",

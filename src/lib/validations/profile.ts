@@ -16,6 +16,21 @@ export const profileSchema = z.object({
 
 export type ProfileInput = z.infer<typeof profileSchema>;
 
+// Per-user notification preferences (stored as jsonb on profiles). Each field
+// defaults so parsing a partial/empty stored value fills in the app defaults.
+export const notificationPrefsSchema = z.object({
+  peptideReminders: z.boolean().default(true),
+  habitNudges: z.boolean().default(true),
+  weeklyReport: z.boolean().default(true),
+  communityReplies: z.boolean().default(false),
+});
+
+export type NotificationPrefs = z.infer<typeof notificationPrefsSchema>;
+
+// Canonical defaults, derived from the schema so the two never drift.
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs =
+  notificationPrefsSchema.parse({});
+
 export const authSchema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
