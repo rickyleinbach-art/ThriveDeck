@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+
+[build.environment]
+  # Next.js 15 requires Node 18.18+. Pin to a current LTS for reproducible CI builds.
+  NODE_VERSION = "20"
+
+# The Next.js runtime is auto-installed by Netlify and manages the publish
+# directory and serverless/edge functions. Building on Netlify's Linux CI also
+# ensures the correct-platform `sharp` binary is bundled.
