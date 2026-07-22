@@ -1,6 +1,6 @@
 import { Lock } from "lucide-react";
 import type { Achievement } from "@/lib/challenges/gamification";
-import { ChallengeIcon } from "./icon";
+import { ChallengeIcon } from "./challenge-icon";
 import { cn } from "@/lib/utils";
 
 export function AchievementBadge({ achievement: a }: { achievement: Achievement }) {

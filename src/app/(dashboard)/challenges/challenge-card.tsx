@@ -1,6 +1,6 @@
 import { Users, CheckCircle2, Crown } from "lucide-react";
 import type { ChallengeView } from "@/lib/challenges/types";
-import { ChallengeIcon } from "./icon";
+import { ChallengeIcon } from "./challenge-icon";
 import { JoinButton } from "./join-button";
 import { cn } from "@/lib/utils";
 
