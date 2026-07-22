@@ -1,4 +1,4 @@
-# MetabolicOS — Product Requirements Document
+# ThriveDeck — Product Requirements Document
 
 > Reference document. In any Claude Code session, read ONLY the section relevant to the
 > module you're building. Do not load the whole file into context.

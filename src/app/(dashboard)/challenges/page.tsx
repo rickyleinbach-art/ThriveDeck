@@ -4,7 +4,7 @@ import { ChallengeCard } from "./challenge-card";
 import { AchievementBadge } from "./achievement-badge";
 import { ChallengeAutoSync } from "./auto-sync";
 
-export const metadata = { title: "Challenges · MetabolicOS" };
+export const metadata = { title: "Challenges · ThriveDeck" };
 
 function Stat({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
   return (

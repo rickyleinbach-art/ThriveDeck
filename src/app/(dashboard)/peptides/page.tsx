@@ -251,7 +251,7 @@ export default async function PeptidesPage() {
 
       <p className="text-xs text-muted-foreground">
         Questions about your protocol, dose, or side effects belong with your licensed
-        healthcare provider. MetabolicOS only stores what you enter.
+        healthcare provider. ThriveDeck only stores what you enter.
       </p>
     </div>
   );

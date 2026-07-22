@@ -5,7 +5,7 @@ import type { Insight } from "@/lib/coach/types";
 import { CoachDisclaimer } from "./disclaimer";
 import { CoachChat } from "./coach-chat";
 
-export const metadata = { title: "AI Coach · MetabolicOS" };
+export const metadata = { title: "AI Coach · ThriveDeck" };
 
 const TONE_STYLES: Record<Insight["tone"], string> = {
   win: "border-[hsl(var(--success))]/40 bg-[hsl(var(--success))]/10",

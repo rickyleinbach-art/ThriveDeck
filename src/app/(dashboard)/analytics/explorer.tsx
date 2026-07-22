@@ -87,7 +87,7 @@ export function AnalyticsExplorer({ data }: { data: AnalyticsData }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `metabolicos-analytics-${range.start}_to_${range.end}.csv`;
+    a.download = `thrivedeck-analytics-${range.start}_to_${range.end}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();

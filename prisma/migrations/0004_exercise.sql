@@ -1,4 +1,4 @@
--- MetabolicOS — Exercise (Module 4) migration
+-- ThriveDeck — Exercise (Module 4) migration
 -- Run this in the Supabase SQL editor (or via prisma migrate + manual RLS).
 -- Prisma manages table structure; RLS policies must be applied via SQL like this,
 -- because Prisma does not manage Postgres row-level security.

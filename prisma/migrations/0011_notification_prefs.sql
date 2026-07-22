@@ -1,4 +1,4 @@
--- MetabolicOS — Notification preferences
+-- ThriveDeck — Notification preferences
 -- Adds a per-user notification-preferences bag to profiles so settings persist
 -- across devices (previously stored client-side). Additive and non-destructive.
 --

@@ -1,4 +1,4 @@
--- MetabolicOS — Shared food catalog (Nutrition follow-up)
+-- ThriveDeck — Shared food catalog (Nutrition follow-up)
 -- A read-only catalog seeded from USDA FoodData Central (SR Legacy,
 -- public domain). Nutrition values are per 100 g. Users search this
 -- and log directly or copy rows into their own food_items library.

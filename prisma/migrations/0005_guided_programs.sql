@@ -1,4 +1,4 @@
--- MetabolicOS — Guided workout programs (Module 4 follow-up)
+-- ThriveDeck — Guided workout programs (Module 4 follow-up)
 -- Built-in follow-along templates at beginner/intermediate/advanced levels.
 -- Mirrors the exercises seed pattern: rows with user_id = null are shared and
 -- read-only for clients; user-created templates keep working unchanged.

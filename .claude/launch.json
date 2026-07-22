@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "metabolicos-dev",
+      "name": "thrivedeck-dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000,

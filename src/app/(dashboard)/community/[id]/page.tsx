@@ -9,7 +9,7 @@ import { InteractionBar } from "../interaction-bar";
 import { CommentComposer } from "./comment-composer";
 import { CommentItem } from "./comment-item";
 
-export const metadata = { title: "Post · MetabolicOS" };
+export const metadata = { title: "Post · ThriveDeck" };
 
 export default async function PostDetailPage({
   params,

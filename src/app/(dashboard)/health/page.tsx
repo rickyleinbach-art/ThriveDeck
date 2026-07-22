@@ -298,7 +298,7 @@ export default async function HealthPage() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        MetabolicOS stores what you enter for your own reference — it never
+        ThriveDeck stores what you enter for your own reference — it never
         interprets results or gives medical advice. Bring questions about any
         reading, lab, or medication to your licensed healthcare provider.
       </p>

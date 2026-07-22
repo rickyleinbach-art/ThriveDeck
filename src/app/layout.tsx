@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "MetabolicOS",
+  title: "ThriveDeck",
   description: "Your metabolic health, in one place.",
 };
 

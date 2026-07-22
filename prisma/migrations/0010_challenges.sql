@@ -1,4 +1,4 @@
--- MetabolicOS — Challenges & Gamification (Module 10, part 1) migration
+-- ThriveDeck — Challenges & Gamification (Module 10, part 1) migration
 -- Run this in the Supabase SQL editor (or via prisma migrate + manual RLS).
 --
 -- Challenge DEFINITIONS live in code (src/lib/challenges/catalog.ts), like

@@ -17,7 +17,7 @@ export type ModerationResult =
   | { action: "block"; reason: string };
 
 const BLOCK_REASON =
-  "This looks like it recommends medication or peptide dosing. To keep the community safe, MetabolicOS doesn't allow posts that tell others how much to take, when to inject, or how to run a protocol. Please share your experience without dosing instructions, and remind others to consult a licensed provider.";
+  "This looks like it recommends medication or peptide dosing. To keep the community safe, ThriveDeck doesn't allow posts that tell others how much to take, when to inject, or how to run a protocol. Please share your experience without dosing instructions, and remind others to consult a licensed provider.";
 
 // Runs the combined post text (title + body, or a comment body) through the
 // classifier and returns what to do with it.

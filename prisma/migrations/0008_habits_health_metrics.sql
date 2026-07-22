@@ -1,4 +1,4 @@
--- MetabolicOS — Habits & Health Metrics (Module 6) migration
+-- ThriveDeck — Habits & Health Metrics (Module 6) migration
 -- Run this in the Supabase SQL editor (or via prisma migrate + manual RLS).
 -- Prisma manages table structure; RLS policies must be applied via SQL like this,
 -- because Prisma does not manage Postgres row-level security.

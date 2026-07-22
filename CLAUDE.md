@@ -1,4 +1,4 @@
-# MetabolicOS
+# ThriveDeck
 
 A premium health platform: nutrition, exercise, weight loss, habits, peptide tracking,
 analytics, community, and AI coaching. Target quality: Apple Health / Levels / WHOOP.

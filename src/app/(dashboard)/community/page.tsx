@@ -12,7 +12,7 @@ import { CommunityGuidelines } from "./guidelines";
 import { PostComposer } from "./post-composer";
 import { PostCard } from "./post-card";
 
-export const metadata = { title: "Community · MetabolicOS" };
+export const metadata = { title: "Community · ThriveDeck" };
 
 interface SearchParams {
   category?: string;

@@ -4,7 +4,7 @@ import { getAnalyticsData } from "@/lib/analytics/queries";
 import { computeScores, weightInsights } from "@/lib/analytics/scores";
 import { AnalyticsExplorer } from "./explorer";
 
-export const metadata = { title: "Analytics · MetabolicOS" };
+export const metadata = { title: "Analytics · ThriveDeck" };
 
 function formatDate(iso: string) {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString(undefined, {

@@ -40,7 +40,7 @@ export default async function DashboardLayout({
       {/* Sidebar */}
       <aside className="hidden w-60 shrink-0 border-r border-border bg-card p-4 lg:block">
         <div className="mb-6 px-2 text-lg font-semibold tracking-tight">
-          MetabolicOS
+          ThriveDeck
         </div>
         <nav className="space-y-1">
           {NAV.map((item) => {
