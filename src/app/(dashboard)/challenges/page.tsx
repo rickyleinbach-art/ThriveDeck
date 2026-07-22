@@ -6,10 +6,22 @@ import { ChallengeAutoSync } from "./auto-sync";
 
 export const metadata = { title: "Challenges · ThriveDeck" };
 
-function Stat({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
+function Stat({
+  icon,
+  value,
+  label,
+  earned = false,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+  // `earned` marks an accomplishment (streak, challenge win) so it wears the
+  // Achievement Orange token. Activity counts stay on the primary Emerald.
+  earned?: boolean;
+}) {
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
-      <div className="text-primary">{icon}</div>
+      <div className={earned ? "text-achievement" : "text-primary"}>{icon}</div>
       <div>
         <p className="text-xl font-semibold leading-tight">{value}</p>
         <p className="text-xs text-muted-foreground">{label}</p>
@@ -59,10 +71,10 @@ export default async function ChallengesPage() {
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat icon={<Flame className="h-5 w-5" />} value={`${g.currentStreak}`} label="Day streak" />
+        <Stat icon={<Flame className="h-5 w-5" />} value={`${g.currentStreak}`} label="Day streak" earned={g.currentStreak > 0} />
         <Stat icon={<CalendarCheck className="h-5 w-5" />} value={`${g.activeDays}`} label="Days logged" />
         <Stat icon={<Dumbbell className="h-5 w-5" />} value={`${g.totalWorkouts}`} label="Workouts" />
-        <Stat icon={<Trophy className="h-5 w-5" />} value={`${g.completedChallenges}`} label="Challenges won" />
+        <Stat icon={<Trophy className="h-5 w-5" />} value={`${g.completedChallenges}`} label="Challenges won" earned={g.completedChallenges > 0} />
       </div>
 
       {/* Achievements */}

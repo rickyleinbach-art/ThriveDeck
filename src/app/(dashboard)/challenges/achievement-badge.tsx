@@ -9,14 +9,14 @@ export function AchievementBadge({ achievement: a }: { achievement: Achievement 
       className={cn(
         "flex flex-col items-center gap-2 rounded-2xl border p-4 text-center",
         a.unlocked
-          ? "border-primary/40 bg-primary/5"
+          ? "border-achievement/40 bg-achievement/5"
           : "border-dashed border-border bg-card opacity-70"
       )}
     >
       <div
         className={cn(
           "flex h-11 w-11 items-center justify-center rounded-full",
-          a.unlocked ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+          a.unlocked ? "bg-achievement/15 text-achievement" : "bg-muted text-muted-foreground"
         )}
       >
         {a.unlocked ? (

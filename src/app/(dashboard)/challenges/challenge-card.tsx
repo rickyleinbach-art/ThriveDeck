@@ -26,7 +26,7 @@ export function ChallengeCard({ view }: { view: ChallengeView }) {
           <div className="flex items-center gap-2">
             <h3 className="font-semibold tracking-tight">{def.title}</h3>
             {progress?.completed && (
-              <CheckCircle2 className="h-4 w-4 text-[hsl(var(--success))]" aria-label="Completed" />
+              <CheckCircle2 className="h-4 w-4 text-achievement" aria-label="Completed" />
             )}
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -59,7 +59,7 @@ export function ChallengeCard({ view }: { view: ChallengeView }) {
             <div
               className={cn(
                 "h-full rounded-full transition-all",
-                progress.completed ? "bg-[hsl(var(--success))]" : "bg-primary"
+                progress.completed ? "bg-achievement" : "bg-primary"
               )}
               style={{ width: `${progress.pct}%` }}
             />
@@ -84,7 +84,7 @@ export function ChallengeCard({ view }: { view: ChallengeView }) {
               <span className="flex items-center gap-2 truncate">
                 <span className="w-4 text-right text-xs text-muted-foreground">{e.rank}</span>
                 <span className="truncate">{e.displayName}{e.isMe ? " (you)" : ""}</span>
-                {e.completed && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />}
+                {e.completed && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-achievement" />}
               </span>
               <span className="text-xs text-muted-foreground">{e.progressPct}%</span>
             </div>

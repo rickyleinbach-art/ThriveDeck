@@ -82,13 +82,17 @@ export default async function HabitsPage() {
         </Card>
         <Card title="Best current streak">
           <p className="text-2xl font-semibold">
-            {bestCurrent}
+            <span className={bestCurrent > 0 ? "text-achievement" : undefined}>
+              {bestCurrent}
+            </span>
             <span className="text-base font-normal text-muted-foreground"> days</span>
           </p>
         </Card>
         <Card title="Longest streak ever">
           <p className="text-2xl font-semibold">
-            {bestEver}
+            <span className={bestEver > 0 ? "text-achievement" : undefined}>
+              {bestEver}
+            </span>
             <span className="text-base font-normal text-muted-foreground"> days</span>
           </p>
         </Card>

@@ -339,7 +339,7 @@ export default async function DashboardPage() {
         {/* Gamification */}
         <StatCard title="Weekly streak" href="/challenges">
           <p className="text-2xl font-semibold">
-            {streak}
+            <span className={streak > 0 ? "text-achievement" : undefined}>{streak}</span>
             <span className="text-base font-normal text-muted-foreground"> day{streak === 1 ? "" : "s"}</span>
           </p>
         </StatCard>

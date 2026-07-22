@@ -2,66 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * ThriveDeck brand palette
+ *   Obsidian  #0B0F14  → 213 29% 6%   — brand foundation / dark background
+ *   Graphite  #232A34  → 215 20% 17%  — supporting surface / layering
+ *   Emerald   #00B37E  → 162 100% 35% — primary interactive: CTAs, active, progress, success
+ *   Orange    #F97316  → 25 95% 53%   — achievement ONLY ("Earn the Orange")
+ *   White     #FFFFFF  → 0 0% 100%    — clarity & contrast
+ *
+ * Dark mode is the flagship experience; light mode mirrors the same premium
+ * visual language with a white background and Obsidian typography.
+ */
 @layer base {
   :root {
-    /* Surfaces — warm neutral, not stark white */
-    --background: 40 30% 99%;
-    --foreground: 200 18% 12%;
+    /* Light — White surfaces, Obsidian typography */
+    --background: 0 0% 100%;
+    --foreground: 213 29% 6%;
     --card: 0 0% 100%;
-    --card-foreground: 200 18% 12%;
+    --card-foreground: 213 29% 6%;
 
-    /* Signature: deep teal-green = vitality, clinical calm */
-    --primary: 173 64% 30%;
-    --primary-foreground: 160 40% 98%;
+    /* Emerald = primary interactive brand color */
+    --primary: 162 100% 32%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 168 30% 94%;
-    --secondary-foreground: 173 45% 22%;
+    --secondary: 214 20% 96%;
+    --secondary-foreground: 213 29% 6%;
 
-    --muted: 200 16% 95%;
-    --muted-foreground: 200 10% 42%;
+    --muted: 214 20% 96%;
+    --muted-foreground: 215 14% 40%;
 
-    --accent: 168 40% 92%;
-    --accent-foreground: 173 45% 22%;
+    --accent: 162 55% 94%;
+    --accent-foreground: 162 100% 20%;
 
     /* Semantic */
-    --success: 152 55% 40%;
+    --success: 162 100% 32%;
     --warning: 38 92% 50%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 200 16% 90%;
-    --input: 200 16% 88%;
-    --ring: 173 64% 30%;
+    /* Achievement — reserved for earned accomplishments only */
+    --achievement: 25 95% 53%;
+    --achievement-foreground: 0 0% 100%;
+
+    --border: 214 20% 90%;
+    --input: 214 20% 88%;
+    --ring: 162 100% 32%;
 
     --radius: 0.875rem;
   }
 
   .dark {
-    --background: 200 24% 8%;
-    --foreground: 160 20% 94%;
-    --card: 200 22% 11%;
-    --card-foreground: 160 20% 94%;
+    /* Dark (flagship) — Obsidian background, Graphite surfaces */
+    --background: 213 29% 6%;
+    --foreground: 210 20% 96%;
+    --card: 214 22% 11%;
+    --card-foreground: 210 20% 96%;
 
-    --primary: 168 58% 45%;
-    --primary-foreground: 200 30% 8%;
+    --primary: 162 100% 40%;
+    --primary-foreground: 213 29% 6%;
 
-    --secondary: 200 18% 16%;
-    --secondary-foreground: 160 20% 90%;
+    --secondary: 215 19% 17%;
+    --secondary-foreground: 210 20% 96%;
 
-    --muted: 200 16% 16%;
-    --muted-foreground: 200 10% 62%;
+    --muted: 215 18% 16%;
+    --muted-foreground: 210 13% 66%;
 
-    --accent: 200 18% 18%;
-    --accent-foreground: 160 20% 90%;
+    --accent: 215 20% 19%;
+    --accent-foreground: 210 20% 96%;
 
-    --success: 152 50% 48%;
+    --success: 162 100% 40%;
     --warning: 38 90% 55%;
     --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 200 16% 20%;
-    --input: 200 16% 22%;
-    --ring: 168 58% 45%;
+    --achievement: 25 95% 56%;
+    --achievement-foreground: 213 29% 6%;
+
+    --border: 215 18% 20%;
+    --input: 215 18% 22%;
+    --ring: 162 100% 40%;
   }
 }
 
