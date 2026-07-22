@@ -11,12 +11,10 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSignup() {
     setError(null);
-    setMessage(null);
     const parsed = authSchema.safeParse({ email, password });
     if (!parsed.success) {
       setError(parsed.error.issues[0].message);
@@ -25,13 +23,21 @@ export default function SignupPage() {
     setLoading(true);
     const supabase = createClient();
     const { error } = await supabase.auth.signUp({ email, password });
-    setLoading(false);
     if (error) {
+      setLoading(false);
+      if (error.message.toLowerCase().includes("already registered")) {
+        setError(
+          "An account with this email already exists. Try signing in, or reset your password."
+        );
+        return;
+      }
       setError(error.message);
       return;
     }
-    // If email confirmation is on, tell the user to check their inbox.
-    setMessage("Check your email to confirm your account, then sign in.");
+    // Email confirmation is disabled, so signUp returns an active session and
+    // the user is logged in immediately — send them straight to the app.
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return (
@@ -62,7 +68,6 @@ export default function SignupPage() {
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
-        {message && <p className="text-sm text-success">{message}</p>}
 
         <button
           onClick={handleSignup}

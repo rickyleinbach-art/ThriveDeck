@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -12,6 +12,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Surface any error passed back from the /auth/callback route
+  // (e.g. an expired reset link).
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get("error");
+    if (param) setError(param);
+  }, []);
 
   async function handleLogin() {
     setError(null);
@@ -52,7 +59,15 @@ export default function LoginPage() {
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium">Password</label>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label className="block text-sm font-medium">Password</label>
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <input
             type="password"
             value={password}
