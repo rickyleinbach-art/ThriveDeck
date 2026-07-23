@@ -960,3 +960,51 @@ model ChallengeParticipant {
   @@index([challengeKey, progressPct])
   @@map("challenge_participants")
 }
+
+// =====================================================================
+// Subscriptions (Module 10 pt2)
+// One row per user; the source of truth for Pro-feature gating. Written
+// ONLY by trusted server code via the service role (Stripe webhook + dev
+// simulate action) — RLS grants users read-only access so no one can
+// self-upgrade from the client. See prisma/migrations/0015_subscriptions.sql
+// and src/lib/subscription/entitlements.ts.
+// =====================================================================
+model Subscription {
+  userId               String             @id @map("user_id") @db.Uuid
+  plan                 Plan               @default(FREE)
+  status               SubscriptionStatus @default(none)
+  billingPeriod        BillingPeriod?     @map("billing_period")
+  currentPeriodEnd     DateTime?          @map("current_period_end")
+  trialEndsAt          DateTime?          @map("trial_ends_at")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  stripeCustomerId     String?            @map("stripe_customer_id")
+  stripeSubscriptionId String?            @map("stripe_subscription_id")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  @@map("subscriptions")
+}
+
+enum Plan {
+  FREE
+  PRO
+
+  @@map("plan")
+}
+
+enum SubscriptionStatus {
+  none
+  trialing
+  active
+  past_due
+  canceled
+
+  @@map("subscription_status")
+}
+
+enum BillingPeriod {
+  monthly
+  annual
+
+  @@map("billing_period")
+}
