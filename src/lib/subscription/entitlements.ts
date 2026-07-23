@@ -30,6 +30,20 @@ export function hasFeature(plan: Plan, feature: Feature): boolean {
   return PLAN_FEATURES[plan].has(feature);
 }
 
+// Master switch for whether Pro gates actually restrict anything. Kept OFF by
+// default so the gating can ship to a live app without stripping features from
+// existing (all-Free) users before billing is activated. Flip BILLING_ENFORCED
+// to "true" in the environment once upgrades work (service-role key / Stripe are
+// set) to turn real gating on. When off, everyone is treated as fully entitled.
+export function isBillingEnforced(): boolean {
+  return process.env.BILLING_ENFORCED === "true";
+}
+
+// Enforcement-aware check — the one gates should call.
+export function entitled(plan: Plan, feature: Feature): boolean {
+  return !isBillingEnforced() || hasFeature(plan, feature);
+}
+
 // Free history window (days). Pro is unlimited.
 export const FREE_HISTORY_DAYS = 90;
 

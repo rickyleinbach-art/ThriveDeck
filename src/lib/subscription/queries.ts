@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { hasFeature, type Feature } from "@/lib/subscription/entitlements";
+import { entitled, type Feature } from "@/lib/subscription/entitlements";
 import type {
   BillingPeriod,
   Plan,
@@ -67,7 +67,8 @@ export async function getEntitlements(): Promise<Entitlements> {
   return {
     plan: subscription.plan,
     subscription,
-    has: (feature: Feature) => hasFeature(subscription.plan, feature),
+    // Enforcement-aware: returns true for everything until BILLING_ENFORCED is on.
+    has: (feature: Feature) => entitled(subscription.plan, feature),
     isPro: subscription.plan === "PRO",
   };
 }

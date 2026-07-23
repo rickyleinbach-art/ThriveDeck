@@ -5,6 +5,7 @@ import { Download, FileText, ArrowUp, ArrowDown } from "lucide-react";
 import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UpgradeInline } from "@/components/upgrade-gate";
 import { AnalyticsChart } from "@/components/charts/analytics-chart";
 import { buildSeries, summarize, type SeriesPoint } from "@/lib/analytics/series";
 import { seriesToCsv } from "@/lib/analytics/export";
@@ -43,13 +44,23 @@ function fmt(value: number | null, unit: string): string {
   return unit.startsWith("/") ? `${n}${unit}` : `${n} ${unit}`;
 }
 
+// Free plans keep the shorter ranges; longer look-backs are a Pro feature.
+const FREE_RANGE_PRESETS: RangePreset[] = ["7d", "30d", "90d", "custom"];
+
 export function AnalyticsExplorer({
   data,
   tracksPeptides = true,
+  canExport = true,
+  canFullRange = true,
 }: {
   data: AnalyticsData;
   tracksPeptides?: boolean;
+  canExport?: boolean;
+  canFullRange?: boolean;
 }) {
+  const rangePresets = canFullRange
+    ? RANGE_PRESETS
+    : RANGE_PRESETS.filter((p) => FREE_RANGE_PRESETS.includes(p));
   const [preset, setPreset] = useState<RangePreset>("30d");
   const [granularity, setGranularity] = useState<Granularity>("daily");
   const [custom, setCustom] = useState<DateRange>({
@@ -111,7 +122,7 @@ export function AnalyticsExplorer({
       <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-card print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-1">
-            {RANGE_PRESETS.map((p) => (
+            {rangePresets.map((p) => (
               <Button
                 key={p}
                 size="sm"
@@ -122,14 +133,18 @@ export function AnalyticsExplorer({
               </Button>
             ))}
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={exportCsv}>
-              <Download className="h-4 w-4" /> CSV
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => window.print()}>
-              <FileText className="h-4 w-4" /> PDF
-            </Button>
-          </div>
+          {canExport ? (
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={exportCsv}>
+                <Download className="h-4 w-4" /> CSV
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => window.print()}>
+                <FileText className="h-4 w-4" /> PDF
+              </Button>
+            </div>
+          ) : (
+            <UpgradeInline label="Export & reports (Pro)" />
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

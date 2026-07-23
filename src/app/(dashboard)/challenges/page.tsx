@@ -1,5 +1,7 @@
 import { Trophy, Flame, Dumbbell, CalendarCheck } from "lucide-react";
 import { getChallengesData } from "@/lib/challenges/queries";
+import { getEntitlements } from "@/lib/subscription/queries";
+import { UpgradeWall } from "@/components/upgrade-gate";
 import { ChallengeCard } from "./challenge-card";
 import { AchievementBadge } from "./achievement-badge";
 import { ChallengeAutoSync } from "./auto-sync";
@@ -31,6 +33,28 @@ function Stat({
 }
 
 export default async function ChallengesPage() {
+  const { has } = await getEntitlements();
+
+  if (!has("challenges")) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
+            <Trophy className="h-6 w-6 text-primary" />
+            Challenges
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            Join a challenge, track it automatically from what you log, and climb the leaderboard.
+          </p>
+        </div>
+        <UpgradeWall
+          title="Challenges are a Pro feature"
+          description="Join challenges, earn XP and achievements, and climb the leaderboard — all tracked automatically from what you log. Upgrade to join in."
+        />
+      </div>
+    );
+  }
+
   const { challenges, gamification: g } = await getChallengesData();
   const joined = challenges.filter((c) => c.joined);
   const available = challenges.filter((c) => !c.joined);

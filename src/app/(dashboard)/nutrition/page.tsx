@@ -10,6 +10,8 @@ import {
   getNutritionTarget,
 } from "@/lib/nutrition/queries";
 import { deleteFoodLogFormAction } from "@/lib/nutrition/actions";
+import { getEntitlements } from "@/lib/subscription/queries";
+import { UpgradeInline } from "@/components/upgrade-gate";
 import { MEAL_LABELS, MEAL_TYPES } from "@/lib/validations/nutrition";
 import type { FoodLog } from "@/lib/nutrition/types";
 import { LogFoodForm } from "./log-food-form";
@@ -132,10 +134,11 @@ export default async function NutritionPage({
   const today = new Date().toISOString().slice(0, 10);
   const date = isValidDate(params.date) ? params.date : today;
 
-  const [logs, target, foodItems] = await Promise.all([
+  const [logs, target, foodItems, ent] = await Promise.all([
     getFoodLogsForDay(date),
     getNutritionTarget(),
     getFoodItems(),
+    getEntitlements(),
   ]);
 
   const totals = dayTotals(logs);
@@ -210,7 +213,11 @@ export default async function NutritionPage({
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card title="Log food" className="lg:col-span-1">
           <div className="mb-4 border-b border-border pb-4">
-            <LabelScan date={date} />
+            {ent.has("label_scanner") ? (
+              <LabelScan date={date} />
+            ) : (
+              <UpgradeInline label="Scan a label (Pro)" />
+            )}
           </div>
           <LogFoodForm date={date} foodItems={foodItems} />
         </Card>

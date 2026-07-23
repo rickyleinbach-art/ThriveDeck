@@ -2,6 +2,8 @@ import { Sparkles, Trophy, TrendingUp, Target } from "lucide-react";
 import { getCoachContext } from "@/lib/coach/queries";
 import { buildWeeklyReport } from "@/lib/coach/insights";
 import type { Insight } from "@/lib/coach/types";
+import { getEntitlements } from "@/lib/subscription/queries";
+import { UpgradeWall } from "@/components/upgrade-gate";
 import { CoachDisclaimer } from "./disclaimer";
 import { CoachChat } from "./coach-chat";
 
@@ -49,20 +51,38 @@ function Section({
 }
 
 export default async function AiCoachPage() {
+  const { has } = await getEntitlements();
+
+  const header = (
+    <div>
+      <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
+        <Sparkles className="h-6 w-6 text-primary" />
+        AI Coach
+      </h1>
+      <p className="mt-1 text-muted-foreground">
+        Your personal review of what you&apos;ve logged — plus a coach you can ask anytime.
+      </p>
+    </div>
+  );
+
+  if (!has("ai_coach")) {
+    return (
+      <div className="space-y-6">
+        {header}
+        <UpgradeWall
+          title="The AI Coach is a Pro feature"
+          description="Get a weekly review of your progress and a coach you can ask anytime — tailored to your goals, training, and diet. Upgrade to unlock it."
+        />
+      </div>
+    );
+  }
+
   const ctx = await getCoachContext();
   const report = buildWeeklyReport(ctx);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-          <Sparkles className="h-6 w-6 text-primary" />
-          AI Coach
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Your personal review of what you&apos;ve logged — plus a coach you can ask anytime.
-        </p>
-      </div>
+      {header}
 
       <CoachDisclaimer />
 
