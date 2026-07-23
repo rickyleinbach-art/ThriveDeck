@@ -5,17 +5,38 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { updateNotificationPrefs, updateUnitSystem } from "@/lib/profile/actions";
+import { Select } from "@/components/ui/select";
+import {
+  updateHealthProfile,
+  updateNotificationPrefs,
+  updatePeptideTracking,
+  updateUnitSystem,
+} from "@/lib/profile/actions";
 import type { NotificationPrefs } from "@/lib/validations/profile";
+import {
+  INJURY_FLAGS,
+  INJURY_FLAG_LABELS,
+  PEPTIDE_CATEGORIES,
+  PEPTIDE_CATEGORY_LABELS,
+  type HealthProfile,
+  type InjuryFlag,
+  type PeptideCategory,
+} from "@/lib/validations/onboarding";
 
 type UnitSystem = "METRIC" | "IMPERIAL";
 
+// peptideReminders is only shown when the user tracks peptides (see below).
 const NOTIF_LABELS: { key: keyof NotificationPrefs; label: string; hint: string }[] = [
+  { key: "mealLogReminders", label: "Meal-log reminders", hint: "A nudge to log your meals." },
+  { key: "workoutReminders", label: "Workout reminders", hint: "A reminder on your training days." },
   { key: "peptideReminders", label: "Peptide & refill reminders", hint: "Dose, refill, lab, and appointment reminders you set." },
   { key: "habitNudges", label: "Habit nudges", hint: "A daily reminder to check off your habits." },
   { key: "weeklyReport", label: "Weekly report", hint: "Your progress summary every week." },
   { key: "communityReplies", label: "Community replies", hint: "When someone replies to your posts." },
 ];
+
+const textareaClass =
+  "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 function Segmented<T extends string>({
   value,
@@ -93,10 +114,16 @@ export function SettingsClient({
   email,
   initialUnitSystem,
   initialNotificationPrefs,
+  initialTracksPeptides,
+  initialPeptideCategory,
+  initialHealthProfile,
 }: {
   email: string;
   initialUnitSystem: UnitSystem;
   initialNotificationPrefs: NotificationPrefs;
+  initialTracksPeptides: boolean;
+  initialPeptideCategory: PeptideCategory | null;
+  initialHealthProfile: HealthProfile;
 }) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
@@ -108,9 +135,73 @@ export function SettingsClient({
   const [notif, setNotif] = useState<NotificationPrefs>(initialNotificationPrefs);
   const [notifError, setNotifError] = useState<string | null>(null);
 
+  // Peptide tracking — the single flag that shows/hides the Peptides module.
+  const [tracksPeptides, setTracksPeptides] = useState(initialTracksPeptides);
+  const [peptideCategory, setPeptideCategory] = useState<PeptideCategory | "">(
+    initialPeptideCategory ?? ""
+  );
+  const [peptideError, setPeptideError] = useState<string | null>(null);
+
+  // Sensitive health details.
+  const [health, setHealth] = useState<HealthProfile>(initialHealthProfile);
+  const [healthSaved, setHealthSaved] = useState(false);
+  const [healthError, setHealthError] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Flipping the toggle (or changing category) persists immediately and
+  // refreshes so the nav reveals/hides the module without a reload.
+  function persistPeptides(nextTracks: boolean, nextCategory: PeptideCategory | "") {
+    setPeptideError(null);
+    startTransition(async () => {
+      const result = await updatePeptideTracking(
+        nextTracks,
+        nextCategory || null
+      );
+      if (!result.success) {
+        setPeptideError(result.error);
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  function togglePeptides(value: boolean) {
+    setTracksPeptides(value);
+    if (!value) setPeptideCategory("");
+    persistPeptides(value, value ? peptideCategory : "");
+  }
+
+  function changePeptideCategory(value: PeptideCategory | "") {
+    setPeptideCategory(value);
+    persistPeptides(tracksPeptides, value);
+  }
+
+  function toggleInjury(flag: InjuryFlag) {
+    setHealthSaved(false);
+    setHealth((h) => ({
+      ...h,
+      injuryFlags: h.injuryFlags.includes(flag)
+        ? h.injuryFlags.filter((f) => f !== flag)
+        : [...h.injuryFlags, flag],
+    }));
+  }
+
+  function saveHealth() {
+    setHealthError(null);
+    setHealthSaved(false);
+    startTransition(async () => {
+      const result = await updateHealthProfile(health);
+      if (!result.success) {
+        setHealthError(result.error);
+        return;
+      }
+      setHealthSaved(true);
+      router.refresh();
+    });
+  }
 
   // Optimistic toggle: reflect immediately, persist to the profile, revert on
   // failure so the UI never claims a preference that didn't save.
@@ -199,7 +290,9 @@ export function SettingsClient({
 
       <Card title="Notifications">
         <div className="divide-y divide-border">
-          {NOTIF_LABELS.map((n) => (
+          {NOTIF_LABELS.filter(
+            (n) => n.key !== "peptideReminders" || tracksPeptides
+          ).map((n) => (
             <Toggle
               key={n.key}
               label={n.label}
@@ -215,6 +308,120 @@ export function SettingsClient({
         <p className="mt-3 text-xs text-muted-foreground">
           Saved to your account. Notification delivery is coming soon.
         </p>
+      </Card>
+
+      <Card title="Peptide tracking">
+        <Toggle
+          label="Track peptides"
+          hint="Shows the Peptides module in your navigation, dashboard, and analytics. Turn it on anytime — no re-onboarding needed."
+          checked={tracksPeptides}
+          onChange={togglePeptides}
+        />
+        {tracksPeptides && (
+          <div className="mt-3 space-y-1.5">
+            <Label htmlFor="peptideCategory">Category</Label>
+            <Select
+              id="peptideCategory"
+              value={peptideCategory}
+              disabled={pending}
+              onChange={(e) =>
+                changePeptideCategory(e.target.value as PeptideCategory | "")
+              }
+            >
+              <option value="">Select…</option>
+              {PEPTIDE_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {PEPTIDE_CATEGORY_LABELS[c]}
+                </option>
+              ))}
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Category only — ThriveDeck records adherence and results, never
+              dosing advice.
+            </p>
+          </div>
+        )}
+        {peptideError && (
+          <p className="mt-3 text-sm text-destructive">{peptideError}</p>
+        )}
+      </Card>
+
+      <Card title="Health details">
+        <p className="mb-3 text-xs text-muted-foreground">
+          Private to your account. Sharing this helps the coach and workouts
+          avoid movements that don&apos;t suit you — optional, and editable
+          anytime.
+        </p>
+        <div className="space-y-1.5">
+          <Label>Injuries or physical limitations</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {INJURY_FLAGS.map((flag) => {
+              const selected = health.injuryFlags.includes(flag);
+              return (
+                <button
+                  key={flag}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => toggleInjury(flag)}
+                  className={
+                    "rounded-lg border px-3 py-2 text-left text-sm font-medium transition " +
+                    (selected
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground")
+                  }
+                >
+                  {INJURY_FLAG_LABELS[flag]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="mt-3 space-y-1.5">
+          <Label htmlFor="injuryNotes">Notes on injuries or limitations</Label>
+          <textarea
+            id="injuryNotes"
+            className={textareaClass}
+            rows={2}
+            value={health.injuryNotes}
+            maxLength={1000}
+            onChange={(e) => {
+              setHealthSaved(false);
+              setHealth((h) => ({ ...h, injuryNotes: e.target.value }));
+            }}
+            placeholder="e.g. left knee — avoid deep squats"
+          />
+        </div>
+        <div className="mt-3 space-y-1.5">
+          <Label htmlFor="conditions">Relevant health conditions</Label>
+          <textarea
+            id="conditions"
+            className={textareaClass}
+            rows={2}
+            value={health.conditions}
+            maxLength={1000}
+            onChange={(e) => {
+              setHealthSaved(false);
+              setHealth((h) => ({ ...h, conditions: e.target.value }));
+            }}
+            placeholder="e.g. type 2 diabetes, hypertension"
+          />
+        </div>
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={saveHealth}
+            disabled={pending}
+            className="inline-flex h-10 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-soft transition hover:opacity-90 disabled:opacity-50"
+          >
+            Save health details
+          </button>
+          {healthSaved && !healthError && (
+            <span className="text-sm text-primary">Saved.</span>
+          )}
+        </div>
+        {healthError && (
+          <p className="mt-3 text-sm text-destructive">{healthError}</p>
+        )}
       </Card>
     </div>
   );

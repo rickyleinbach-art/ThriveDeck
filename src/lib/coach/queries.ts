@@ -53,9 +53,14 @@ export async function getCoachContext(): Promise<CoachContext> {
 
   let proteinFoods: SimpleFood[] = [];
   let templates: SimpleTemplate[] = [];
+  let goal: CoachContext["goal"] = null;
+  let experience: CoachContext["experience"] = null;
+  let trainingDaysPerWeek: number | null = null;
+  let dietaryPattern: CoachContext["dietaryPattern"] = null;
+  let allergies: string | null = null;
 
   if (user) {
-    const [foodRes, templateRes] = await Promise.all([
+    const [foodRes, templateRes, profileRes] = await Promise.all([
       supabase
         .from("food_items")
         .select("name, protein_g, calories, serving_size, serving_unit")
@@ -68,7 +73,23 @@ export async function getCoachContext(): Promise<CoachContext> {
         .select("name, difficulty, user_id")
         .or(`user_id.eq.${user.id},user_id.is.null`)
         .limit(8),
+      // Onboarding answers that seed the coach's initial context.
+      supabase
+        .from("profiles")
+        .select(
+          "primary_goal, training_experience, training_days_per_week, dietary_pattern, allergies"
+        )
+        .eq("id", user.id)
+        .maybeSingle(),
     ]);
+
+    if (profileRes.data) {
+      goal = profileRes.data.primary_goal ?? null;
+      experience = profileRes.data.training_experience ?? null;
+      trainingDaysPerWeek = profileRes.data.training_days_per_week ?? null;
+      dietaryPattern = profileRes.data.dietary_pattern ?? null;
+      allergies = profileRes.data.allergies ?? null;
+    }
 
     proteinFoods = (foodRes.data ?? []).map((r) => ({
       name: r.name as string,
@@ -129,6 +150,11 @@ export async function getCoachContext(): Promise<CoachContext> {
     analytics,
     scores,
     weight,
+    goal,
+    experience,
+    trainingDaysPerWeek,
+    dietaryPattern,
+    allergies,
     streakDays: computeStreak(analytics.series, today),
     workouts30d,
     lastWorkoutDay,

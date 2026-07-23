@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/profile/queries";
 import { DEFAULT_NOTIFICATION_PREFS } from "@/lib/validations/profile";
+import { DEFAULT_HEALTH_PROFILE } from "@/lib/validations/onboarding";
 import { SettingsClient } from "./settings-client";
 
 export default async function SettingsPage() {
@@ -28,6 +29,9 @@ export default async function SettingsPage() {
         initialNotificationPrefs={
           profile?.notificationPrefs ?? DEFAULT_NOTIFICATION_PREFS
         }
+        initialTracksPeptides={profile?.tracksPeptides ?? true}
+        initialPeptideCategory={profile?.peptideCategory ?? null}
+        initialHealthProfile={profile?.healthProfile ?? DEFAULT_HEALTH_PROFILE}
       />
     </div>
   );

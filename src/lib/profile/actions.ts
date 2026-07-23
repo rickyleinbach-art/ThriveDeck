@@ -8,17 +8,25 @@ import {
   type NotificationPrefs,
   type ProfileInput,
 } from "@/lib/validations/profile";
+import {
+  hasHealthData,
+  healthProfileSchema,
+  PEPTIDE_CATEGORIES,
+  type HealthProfile,
+  type PeptideCategory,
+} from "@/lib/validations/onboarding";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
 // The profile feeds cross-module reads (BMI on Weight, the macro calculator
-// on Nutrition, unit display everywhere), so refresh those too.
+// on Nutrition, unit display everywhere, AI Coach context), so refresh those.
 function revalidateProfileConsumers() {
   revalidatePath("/profile");
   revalidatePath("/settings");
   revalidatePath("/dashboard");
   revalidatePath("/weight");
   revalidatePath("/nutrition");
+  revalidatePath("/ai-coach");
 }
 
 // Full-profile editor semantics: the form always submits every field, so we
@@ -46,6 +54,11 @@ export async function updateProfile(input: ProfileInput): Promise<ActionResult> 
       unit_system: parsed.data.unitSystem,
       goal_weight_kg: parsed.data.goalWeightKg ?? null,
       activity_level: parsed.data.activityLevel ?? null,
+      primary_goal: parsed.data.primaryGoal ?? null,
+      training_experience: parsed.data.trainingExperience ?? null,
+      training_days_per_week: parsed.data.trainingDaysPerWeek ?? null,
+      dietary_pattern: parsed.data.dietaryPattern ?? null,
+      allergies: parsed.data.allergies || null,
       onboarded: true,
     })
     .eq("id", user.id);
@@ -53,6 +66,82 @@ export async function updateProfile(input: ProfileInput): Promise<ActionResult> 
   if (error) return { success: false, error: "Could not save profile" };
 
   revalidateProfileConsumers();
+  return { success: true };
+}
+
+// Focused updater for the Settings "Track peptides" toggle. This is the single
+// flag that gates the Peptides module app-wide (Phase 5 § 5.2), so it's kept
+// separate from the full-profile save and never clobbered by it. Flipping it on
+// reveals the module immediately — no re-onboarding. The category is only kept
+// when tracking is on.
+export async function updatePeptideTracking(
+  tracksPeptides: boolean,
+  peptideCategory: PeptideCategory | null
+): Promise<ActionResult> {
+  if (typeof tracksPeptides !== "boolean") {
+    return { success: false, error: "Invalid value" };
+  }
+  if (peptideCategory !== null && !PEPTIDE_CATEGORIES.includes(peptideCategory)) {
+    return { success: false, error: "Invalid peptide category" };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not signed in" };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      tracks_peptides: tracksPeptides,
+      peptide_category: tracksPeptides ? peptideCategory : null,
+    })
+    .eq("id", user.id);
+
+  if (error) return { success: false, error: "Could not save preference" };
+
+  // Nav, dashboard, analytics, and the peptides route all read this flag.
+  revalidateProfileConsumers();
+  revalidatePath("/analytics");
+  revalidatePath("/peptides");
+  return { success: true };
+}
+
+// Focused updater for sensitive Screen-4 health data (injuries, conditions).
+// Stamps consent server-side the first time real data is present so the
+// timestamp reflects an actual acknowledgement, not an empty save.
+export async function updateHealthProfile(
+  input: HealthProfile
+): Promise<ActionResult> {
+  const parsed = healthProfileSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: "Invalid health details" };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not signed in" };
+
+  const value: HealthProfile = {
+    ...parsed.data,
+    consentAt: hasHealthData(parsed.data)
+      ? parsed.data.consentAt ?? new Date().toISOString()
+      : null,
+  };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ health_profile: value })
+    .eq("id", user.id);
+
+  if (error) return { success: false, error: "Could not save health details" };
+
+  revalidatePath("/settings");
+  revalidatePath("/profile");
+  revalidatePath("/ai-coach");
   return { success: true };
 }
 

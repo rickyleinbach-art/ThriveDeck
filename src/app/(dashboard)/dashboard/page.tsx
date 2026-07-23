@@ -14,6 +14,7 @@ import { getActiveWorkout, getWorkoutHistory } from "@/lib/exercise/queries";
 import { getHabits, getHabitLogs } from "@/lib/habits/queries";
 import { isComplete, isScheduledOn } from "@/lib/habits/calculations";
 import { getUpcomingReminders } from "@/lib/peptides/queries";
+import { getProfile } from "@/lib/profile/queries";
 import type { Habit } from "@/lib/habits/types";
 
 function formatValue(value: number, unit: string) {
@@ -90,6 +91,7 @@ export default async function DashboardPage() {
     habits,
     habitLogsToday,
     reminders,
+    profile,
   ] = await Promise.all([
     getBodyMetrics({ metricType: "WEIGHT", limit: 14 }),
     getBodyMetrics({ metricType: "BODY_FAT", limit: 14 }),
@@ -101,7 +103,10 @@ export default async function DashboardPage() {
     getHabits(),
     getHabitLogs({ since: today }),
     getUpcomingReminders({ limit: 1 }),
+    getProfile(),
   ]);
+
+  const tracksPeptides = profile?.tracksPeptides ?? true;
 
   const scores = computeScores(analytics);
   const streak = computeGamification(analytics, 0).currentStreak;
@@ -328,22 +333,24 @@ export default async function DashboardPage() {
           )}
         </StatCard>
 
-        {/* Peptides */}
-        <StatCard title="Next peptide reminder" href="/peptides">
-          {nextReminder ? (
-            <div>
-              <p className="truncate text-sm font-medium">{nextReminder.title}</p>
-              <p className="text-sm text-muted-foreground">
-                {new Date(nextReminder.dueAt).toLocaleDateString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                })}
-              </p>
-            </div>
-          ) : (
-            <Empty>No reminders set</Empty>
-          )}
-        </StatCard>
+        {/* Peptides — hidden for users who don't track peptides */}
+        {tracksPeptides && (
+          <StatCard title="Next peptide reminder" href="/peptides">
+            {nextReminder ? (
+              <div>
+                <p className="truncate text-sm font-medium">{nextReminder.title}</p>
+                <p className="text-sm text-muted-foreground">
+                  {new Date(nextReminder.dueAt).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </p>
+              </div>
+            ) : (
+              <Empty>No reminders set</Empty>
+            )}
+          </StatCard>
+        )}
 
         {/* Gamification */}
         <StatCard title="Weekly streak" href="/challenges">

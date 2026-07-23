@@ -1,5 +1,10 @@
 import type { AnalyticsData } from "@/lib/analytics/types";
 import type { DashboardScores, WeightInsights } from "@/lib/analytics/scores";
+import type {
+  DietaryPattern,
+  PrimaryGoal,
+  TrainingExperience,
+} from "@/lib/validations/onboarding";
 
 // AI Coach domain model (Module 8). The coach is deterministic: it reads the
 // same data the Analytics module reads and turns it into plain-language
@@ -12,6 +17,14 @@ export interface CoachContext {
   analytics: AnalyticsData;
   scores: DashboardScores;
   weight: WeightInsights | null;
+
+  // Onboarding answers (Phase 5 § 5.3) — seed the coach so its first
+  // suggestion is relevant instead of generic. Any may be null if skipped.
+  goal: PrimaryGoal | null;
+  experience: TrainingExperience | null;
+  trainingDaysPerWeek: number | null;
+  dietaryPattern: DietaryPattern | null;
+  allergies: string | null;
 
   // Derived activity summary.
   streakDays: number; // consecutive days ending today with anything logged

@@ -13,7 +13,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { NAV_ITEMS } from "@/components/nav-items";
+import type { NavItem } from "@/components/nav-items";
 
 // Primary bottom-nav tabs (mobile only). Capped at 4 core + a "More" tab that
 // reveals the full module list. Desktop keeps the sidebar (this is lg:hidden).
@@ -26,7 +26,9 @@ const TABS: Tab[] = [
   { label: "Analytics", href: "/analytics", icon: LineChart },
 ];
 
-export function BottomNav() {
+// navItems is the already-gated module list from the dashboard layout, so the
+// "More" sheet hides the same optional modules the sidebar does.
+export function BottomNav({ navItems }: { navItems: NavItem[] }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -130,7 +132,7 @@ export function BottomNav() {
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-1">
-                {NAV_ITEMS.map((item) => {
+                {navItems.map((item) => {
                   const active = isActive(item.href);
                   return (
                     <Link

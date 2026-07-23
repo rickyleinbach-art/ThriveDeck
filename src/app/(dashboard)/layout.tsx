@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BottomNav } from "@/components/bottom-nav";
 import { PullToRefresh } from "@/components/pull-to-refresh";
-import { NAV_ITEMS } from "@/components/nav-items";
+import { visibleNavItems } from "@/components/nav-items";
+import { getProfile } from "@/lib/profile/queries";
 
 export default async function DashboardLayout({
   children,
@@ -20,6 +21,18 @@ export default async function DashboardLayout({
   // Belt-and-suspenders: middleware already guards this, but never render for
   // an unauthenticated user.
   if (!user) redirect("/login");
+
+  // First-time users are routed through the onboarding wizard once, before they
+  // ever reach a module page. This layout wraps every dashboard route, so it's
+  // the real guard (the group's URLs aren't under /dashboard, so middleware
+  // can't cover them). `onboarded` flips true when the wizard completes/skips.
+  const profile = await getProfile();
+  if (profile && !profile.onboarded) redirect("/onboarding");
+
+  // Hide optional modules the user opted out of (e.g. Peptides).
+  const navItems = visibleNavItems({
+    tracksPeptides: profile?.tracksPeptides ?? true,
+  });
 
   return (
     <div className="flex min-h-screen">
@@ -38,7 +51,7 @@ export default async function DashboardLayout({
           </span>
         </div>
         <nav className="space-y-1">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -78,7 +91,7 @@ export default async function DashboardLayout({
       </div>
 
       {/* Mobile primary navigation */}
-      <BottomNav />
+      <BottomNav navItems={navItems} />
     </div>
   );
 }

@@ -43,7 +43,13 @@ function fmt(value: number | null, unit: string): string {
   return unit.startsWith("/") ? `${n}${unit}` : `${n} ${unit}`;
 }
 
-export function AnalyticsExplorer({ data }: { data: AnalyticsData }) {
+export function AnalyticsExplorer({
+  data,
+  tracksPeptides = true,
+}: {
+  data: AnalyticsData;
+  tracksPeptides?: boolean;
+}) {
   const [preset, setPreset] = useState<RangePreset>("30d");
   const [granularity, setGranularity] = useState<Granularity>("daily");
   const [custom, setCustom] = useState<DateRange>({
@@ -62,15 +68,19 @@ export function AnalyticsExplorer({ data }: { data: AnalyticsData }) {
   }
 
   // Only metrics with data; each carries its bucketed series for the range.
+  // Peptide metrics are dropped entirely when the user doesn't track peptides,
+  // so the "Peptides" group never appears in filters or charts (Phase 5 § 5.2).
   const active = useMemo(() => {
-    return METRICS.map((def) => {
-      const raw = data.series[def.key];
-      if (!raw || raw.length === 0) return null;
-      const series = buildSeries(raw, range, granularity, def.agg);
-      const unit = data.units[def.key] ?? def.unit;
-      return { def, series, unit, summary: summarize(series) };
-    }).filter((m): m is ActiveMetric => m !== null);
-  }, [data, range, granularity]);
+    return METRICS.filter((def) => tracksPeptides || def.group !== "Peptides")
+      .map((def) => {
+        const raw = data.series[def.key];
+        if (!raw || raw.length === 0) return null;
+        const series = buildSeries(raw, range, granularity, def.agg);
+        const unit = data.units[def.key] ?? def.unit;
+        return { def, series, unit, summary: summarize(series) };
+      })
+      .filter((m): m is ActiveMetric => m !== null);
+  }, [data, range, granularity, tracksPeptides]);
 
   const byGroup = useMemo(() => {
     const map = new Map<MetricGroup, ActiveMetric[]>();

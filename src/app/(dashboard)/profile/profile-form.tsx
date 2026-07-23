@@ -9,6 +9,14 @@ import { Select } from "@/components/ui/select";
 import { profileSchema } from "@/lib/validations/profile";
 import { updateProfile } from "@/lib/profile/actions";
 import type { Profile } from "@/lib/profile/queries";
+import {
+  DIETARY_PATTERNS,
+  DIETARY_PATTERN_LABELS,
+  PRIMARY_GOALS,
+  PRIMARY_GOAL_LABELS,
+  TRAINING_EXPERIENCES,
+  TRAINING_EXPERIENCE_LABELS,
+} from "@/lib/validations/onboarding";
 
 const KG_PER_LB = 0.45359237;
 const CM_PER_IN = 2.54;
@@ -83,6 +91,19 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       : ""
   );
 
+  // Onboarding answers, editable later here (Phase 5 § 5.5).
+  const [primaryGoal, setPrimaryGoal] = useState<string>(profile.primaryGoal ?? "");
+  const [trainingExperience, setTrainingExperience] = useState<string>(
+    profile.trainingExperience ?? ""
+  );
+  const [trainingDays, setTrainingDays] = useState<string>(
+    profile.trainingDaysPerWeek != null ? String(profile.trainingDaysPerWeek) : ""
+  );
+  const [dietaryPattern, setDietaryPattern] = useState<string>(
+    profile.dietaryPattern ?? ""
+  );
+  const [allergies, setAllergies] = useState(profile.allergies ?? "");
+
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -133,6 +154,11 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       unitSystem,
       goalWeightKg: resolvedGoalKg,
       activityLevel: activityLevel || undefined,
+      primaryGoal: primaryGoal || undefined,
+      trainingExperience: trainingExperience || undefined,
+      trainingDaysPerWeek: trainingDays ? Number(trainingDays) : undefined,
+      dietaryPattern: dietaryPattern || undefined,
+      allergies: allergies.trim() || undefined,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Check your details");
@@ -281,6 +307,80 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             placeholder={unitSystem === "IMPERIAL" ? "165" : "75"}
           />
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="primaryGoal">Primary goal</Label>
+          <Select
+            id="primaryGoal"
+            value={primaryGoal}
+            onChange={(e) => setPrimaryGoal(e.target.value)}
+          >
+            <option value="">Select…</option>
+            {PRIMARY_GOALS.map((g) => (
+              <option key={g} value={g}>
+                {PRIMARY_GOAL_LABELS[g]}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="dietaryPattern">Dietary pattern</Label>
+          <Select
+            id="dietaryPattern"
+            value={dietaryPattern}
+            onChange={(e) => setDietaryPattern(e.target.value)}
+          >
+            <option value="">Select…</option>
+            {DIETARY_PATTERNS.map((d) => (
+              <option key={d} value={d}>
+                {DIETARY_PATTERN_LABELS[d]}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="trainingExperience">Training experience</Label>
+          <Select
+            id="trainingExperience"
+            value={trainingExperience}
+            onChange={(e) => setTrainingExperience(e.target.value)}
+          >
+            <option value="">Select…</option>
+            {TRAINING_EXPERIENCES.map((x) => (
+              <option key={x} value={x}>
+                {TRAINING_EXPERIENCE_LABELS[x]}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="trainingDays">Training days / week</Label>
+          <Select
+            id="trainingDays"
+            value={trainingDays}
+            onChange={(e) => setTrainingDays(e.target.value)}
+          >
+            <option value="">Select…</option>
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((n) => (
+              <option key={n} value={String(n)}>
+                {n === 0 ? "None yet" : `${n} day${n === 1 ? "" : "s"}`}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="allergies">Allergies or foods to avoid</Label>
+        <Input
+          id="allergies"
+          value={allergies}
+          onChange={(e) => setAllergies(e.target.value)}
+          placeholder="e.g. peanuts, shellfish"
+          maxLength={1000}
+        />
       </div>
 
       <div className="space-y-1.5">

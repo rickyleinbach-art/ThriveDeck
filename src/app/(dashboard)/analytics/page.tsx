@@ -2,6 +2,7 @@ import { ScoreCard } from "@/components/charts/score-card";
 import { Card } from "@/components/ui/card";
 import { getAnalyticsData } from "@/lib/analytics/queries";
 import { computeScores, weightInsights } from "@/lib/analytics/scores";
+import { getProfile } from "@/lib/profile/queries";
 import { AnalyticsExplorer } from "./explorer";
 
 export const metadata = { title: "Analytics · ThriveDeck" };
@@ -16,7 +17,7 @@ function formatDate(iso: string) {
 }
 
 export default async function AnalyticsPage() {
-  const data = await getAnalyticsData();
+  const [data, profile] = await Promise.all([getAnalyticsData(), getProfile()]);
   const scores = computeScores(data);
   const weight = weightInsights(data);
 
@@ -84,7 +85,10 @@ export default async function AnalyticsPage() {
         </div>
       )}
 
-      <AnalyticsExplorer data={data} />
+      <AnalyticsExplorer
+        data={data}
+        tracksPeptides={profile?.tracksPeptides ?? true}
+      />
     </div>
   );
 }

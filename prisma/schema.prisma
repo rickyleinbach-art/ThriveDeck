@@ -30,6 +30,22 @@ model Profile {
   // Per-user notification-preference bag (keys defined in
   // src/lib/validations/profile.ts). Defaults to {} and merges with app defaults.
   notificationPrefs Json       @default("{}") @map("notification_prefs")
+
+  // First-time onboarding answers (Phase 5). All optional so a skipped wizard
+  // never blocks anything; `onboarded` above is the wizard-complete flag.
+  primaryGoal         PrimaryGoal?        @map("primary_goal")
+  trainingExperience  TrainingExperience? @map("training_experience")
+  trainingDaysPerWeek Int?                @map("training_days_per_week")
+  dietaryPattern      DietaryPattern?     @map("dietary_pattern")
+  allergies           String?
+  // Gates the Peptides module app-wide (nav, dashboard, analytics, route).
+  // Defaults true so existing users keep it; the wizard sets it explicitly.
+  tracksPeptides      Boolean             @default(true) @map("tracks_peptides")
+  peptideCategory     PeptideCategory?    @map("peptide_category")
+  // Sensitive Screen-4 health data (injuryFlags, injuryNotes, conditions,
+  // consentAt); shape in src/lib/validations/onboarding.ts. Never logged.
+  healthProfile       Json                @default("{}") @map("health_profile")
+
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
 
@@ -60,6 +76,50 @@ enum ActivityLevel {
   VERY_ACTIVE
 
   @@map("activity_level")
+}
+
+// Onboarding: primary goal drives the calorie adjustment on the auto-populated
+// nutrition target and seeds AI Coach context.
+enum PrimaryGoal {
+  LOSE_FAT
+  BUILD_MUSCLE
+  IMPROVE_PERFORMANCE
+  GENERAL_HEALTH
+  RECOVERY_REHAB
+  MAINTAIN
+
+  @@map("primary_goal")
+}
+
+enum TrainingExperience {
+  NEW
+  SOME
+  ADVANCED
+
+  @@map("training_experience")
+}
+
+enum DietaryPattern {
+  NONE
+  VEGETARIAN
+  VEGAN
+  KETO
+  PALEO
+  OTHER
+
+  @@map("dietary_pattern")
+}
+
+// Category level only — never specific compounds or doses, consistent with the
+// product's record-only peptide positioning (CLAUDE.md § Health & safety).
+enum PeptideCategory {
+  RECOVERY
+  PERFORMANCE
+  WEIGHT_MGMT
+  LONGEVITY
+  OTHER
+
+  @@map("peptide_category")
 }
 
 // =====================================================================

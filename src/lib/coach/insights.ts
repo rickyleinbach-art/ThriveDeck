@@ -1,5 +1,9 @@
 import type { CoachContext, Insight, WeeklyReport } from "@/lib/coach/types";
 import type { ScoreResult } from "@/lib/analytics/scores";
+import {
+  DIETARY_PATTERN_LABELS,
+  PRIMARY_GOAL_LABELS,
+} from "@/lib/validations/onboarding";
 
 // Turns the coach context into plain-language review and suggestions. Every
 // statement here is a summary of what the user logged or a general lifestyle
@@ -8,6 +12,25 @@ import type { ScoreResult } from "@/lib/analytics/scores";
 
 const round = (n: number) => Math.round(n);
 const fmt1 = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
+
+// A short "for your <goal>" phrase for coach copy, or "" if the goal is unset.
+function goalPhrase(ctx: CoachContext): string {
+  return ctx.goal ? ` for your ${PRIMARY_GOAL_LABELS[ctx.goal].toLowerCase()} goal` : "";
+}
+
+// Dietary constraints the coach should respect in meal suggestions.
+function dietaryLine(ctx: CoachContext): string | null {
+  const parts: string[] = [];
+  if (ctx.dietaryPattern && ctx.dietaryPattern !== "NONE") {
+    parts.push(`keeping it ${DIETARY_PATTERN_LABELS[ctx.dietaryPattern].toLowerCase()}`);
+  }
+  if (ctx.allergies && ctx.allergies.trim()) {
+    parts.push(`avoiding ${ctx.allergies.trim()}`);
+  }
+  if (parts.length === 0) return null;
+  const joined = parts.join(" and ");
+  return joined.charAt(0).toUpperCase() + joined.slice(1) + ".";
+}
 
 export interface Answer {
   text: string;
@@ -83,14 +106,15 @@ export function buildWeeklyReport(ctx: CoachContext): WeeklyReport {
 
   const overall = scores.wellness.value;
   const greeting = greetingFor(ctx.today);
+  const gp = goalPhrase(ctx);
   const summary =
     overall === null
-      ? "Log a few days of meals, workouts, or habits and I'll start summarizing your week and spotting trends."
+      ? `Log a few days of meals, workouts, or habits and I'll start summarizing your week${gp} and spotting trends.`
       : overall >= 75
-      ? `You're having a strong week — an overall wellness score of ${overall}/100. Here's what stood out.`
+      ? `You're having a strong week${gp} — an overall wellness score of ${overall}/100. Here's what stood out.`
       : overall >= 50
-      ? `Solid week so far, with an overall wellness score of ${overall}/100. A couple of areas will move the needle most.`
-      : `Your overall wellness score is ${overall}/100 this week. Small, consistent wins are the fastest way up — here's where to aim.`;
+      ? `Solid week so far${gp}, with an overall wellness score of ${overall}/100. A couple of areas will move the needle most.`
+      : `Your overall wellness score is ${overall}/100 this week. Small, consistent wins are the fastest way up${gp} — here's where to aim.`;
 
   return { greeting, summary, wins, focus, milestones };
 }
@@ -164,6 +188,8 @@ export function mealAnswer(ctx: CoachContext): Answer {
     `Roughly ${remCal} kcal and ${remPro} g protein left for today.`,
     "Anchor your next meal with protein, then add vegetables and a carb or fat to fill the rest.",
   ];
+  const diet = dietaryLine(ctx);
+  if (diet) bullets.push(diet);
   if (ctx.proteinFoods.length > 0) {
     const picks = ctx.proteinFoods
       .slice(0, 3)
@@ -197,7 +223,18 @@ export function workoutAnswer(ctx: CoachContext): Answer {
   if (fit.value !== null) {
     bullets.push(`This week: ${fit.detail} (fitness score ${fit.value}/100).`);
   }
-  bullets.push("Aim for a mix across the week: strength, some cardio, and daily steps.");
+  if (ctx.trainingDaysPerWeek && ctx.trainingDaysPerWeek > 0) {
+    bullets.push(
+      `You set aside ${ctx.trainingDaysPerWeek} day${ctx.trainingDaysPerWeek === 1 ? "" : "s"}/week to train — spread them so no muscle group is worked two days running.`
+    );
+  } else {
+    bullets.push("Aim for a mix across the week: strength, some cardio, and daily steps.");
+  }
+  if (ctx.experience === "NEW") {
+    bullets.push("New to training? Start with the guided beginner program and focus on form over load.");
+  } else if (ctx.experience === "ADVANCED") {
+    bullets.push("With your experience, progressive overload and periodization will matter more than variety.");
+  }
 
   if (ctx.templates.length > 0) {
     const names = ctx.templates.slice(0, 3).map((t) => t.name);
