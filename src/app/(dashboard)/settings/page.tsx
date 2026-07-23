@@ -30,7 +30,7 @@ export default async function SettingsPage() {
           profile?.notificationPrefs ?? DEFAULT_NOTIFICATION_PREFS
         }
         initialTracksPeptides={profile?.tracksPeptides ?? true}
-        initialPeptideCategory={profile?.peptideCategory ?? null}
+        initialPeptideCategories={profile?.peptideCategories ?? []}
         initialHealthProfile={profile?.healthProfile ?? DEFAULT_HEALTH_PROFILE}
       />
     </div>

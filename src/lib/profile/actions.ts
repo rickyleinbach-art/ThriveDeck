@@ -54,7 +54,7 @@ export async function updateProfile(input: ProfileInput): Promise<ActionResult> 
       unit_system: parsed.data.unitSystem,
       goal_weight_kg: parsed.data.goalWeightKg ?? null,
       activity_level: parsed.data.activityLevel ?? null,
-      primary_goal: parsed.data.primaryGoal ?? null,
+      primary_goals: parsed.data.primaryGoals ?? [],
       training_experience: parsed.data.trainingExperience ?? null,
       training_days_per_week: parsed.data.trainingDaysPerWeek ?? null,
       dietary_pattern: parsed.data.dietaryPattern ?? null,
@@ -72,16 +72,19 @@ export async function updateProfile(input: ProfileInput): Promise<ActionResult> 
 // Focused updater for the Settings "Track peptides" toggle. This is the single
 // flag that gates the Peptides module app-wide (Phase 5 § 5.2), so it's kept
 // separate from the full-profile save and never clobbered by it. Flipping it on
-// reveals the module immediately — no re-onboarding. The category is only kept
-// when tracking is on.
+// reveals the module immediately — no re-onboarding. Categories (multi-select)
+// are only kept when tracking is on.
 export async function updatePeptideTracking(
   tracksPeptides: boolean,
-  peptideCategory: PeptideCategory | null
+  peptideCategories: PeptideCategory[]
 ): Promise<ActionResult> {
   if (typeof tracksPeptides !== "boolean") {
     return { success: false, error: "Invalid value" };
   }
-  if (peptideCategory !== null && !PEPTIDE_CATEGORIES.includes(peptideCategory)) {
+  if (
+    !Array.isArray(peptideCategories) ||
+    peptideCategories.some((c) => !PEPTIDE_CATEGORIES.includes(c))
+  ) {
     return { success: false, error: "Invalid peptide category" };
   }
 
@@ -95,7 +98,7 @@ export async function updatePeptideTracking(
     .from("profiles")
     .update({
       tracks_peptides: tracksPeptides,
-      peptide_category: tracksPeptides ? peptideCategory : null,
+      peptide_categories: tracksPeptides ? peptideCategories : [],
     })
     .eq("id", user.id);
 

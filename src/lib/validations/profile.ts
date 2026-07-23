@@ -22,7 +22,7 @@ export const profileSchema = z.object({
   activityLevel: z
     .enum(["SEDENTARY", "LIGHT", "MODERATE", "ACTIVE", "VERY_ACTIVE"])
     .optional(),
-  primaryGoal: z.enum(PRIMARY_GOALS).optional(),
+  primaryGoals: z.array(z.enum(PRIMARY_GOALS)).max(6).optional(),
   trainingExperience: z.enum(TRAINING_EXPERIENCES).optional(),
   trainingDaysPerWeek: z.number().int().min(0).max(7).optional(),
   dietaryPattern: z.enum(DIETARY_PATTERNS).optional(),

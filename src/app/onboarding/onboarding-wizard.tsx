@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { completeOnboarding } from "@/lib/onboarding/actions";
 import {
+  anyWeightChangeGoal,
   DIETARY_PATTERNS,
   DIETARY_PATTERN_LABELS,
   INJURY_FLAGS,
@@ -18,7 +19,6 @@ import {
   PRIMARY_GOAL_LABELS,
   TRAINING_EXPERIENCES,
   TRAINING_EXPERIENCE_LABELS,
-  WEIGHT_CHANGE_GOALS,
   type DietaryPattern,
   type InjuryFlag,
   type OnboardingInput,
@@ -26,6 +26,8 @@ import {
   type PrimaryGoal,
   type TrainingExperience,
 } from "@/lib/validations/onboarding";
+import { PEPTIDE_CATALOG_ENTRIES } from "@/lib/peptides/catalog";
+import { MedicalDisclaimer } from "@/app/(dashboard)/peptides/disclaimer";
 
 const KG_PER_LB = 0.45359237;
 const CM_PER_IN = 2.54;
@@ -89,6 +91,43 @@ function ChoiceGrid<T extends string>({
   );
 }
 
+function MultiChoiceGrid<T extends string>({
+  values,
+  options,
+  onToggle,
+  columns = 1,
+}: {
+  values: T[];
+  options: { value: T; label: string }[];
+  onToggle: (v: T) => void;
+  columns?: 1 | 2;
+}) {
+  return (
+    <div className={columns === 2 ? "grid grid-cols-2 gap-2" : "grid grid-cols-1 gap-2"}>
+      {options.map((o) => {
+        const selected = values.includes(o.value);
+        return (
+          <button
+            key={o.value}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onToggle(o.value)}
+            className={
+              "flex items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-medium transition " +
+              (selected
+                ? "border-primary bg-primary/10 text-foreground"
+                : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground")
+            }
+          >
+            <span>{o.label}</span>
+            {selected && <Check className="h-4 w-4 shrink-0 text-primary" />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function Field({
   label,
   hint,
@@ -133,18 +172,21 @@ export function OnboardingWizard({
   const [heightIn, setHeightIn] = useState("");
   const [weight, setWeight] = useState(""); // display unit
 
-  // Screen 2 — Goals & activity
-  const [primaryGoal, setPrimaryGoal] = useState<PrimaryGoal | "">("");
+  // Screen 2 — Goals & activity (goals are multi-select)
+  const [primaryGoals, setPrimaryGoals] = useState<PrimaryGoal[]>([]);
   const [goalWeight, setGoalWeight] = useState(""); // display unit
   const [activityLevel, setActivityLevel] = useState<ActivityLevel | "">("");
   const [experience, setExperience] = useState<TrainingExperience | "">("");
   const [trainingDays, setTrainingDays] = useState("");
 
-  // Screen 3 — Nutrition & substances
+  // Screen 3 — Nutrition & substances (categories + compounds multi-select)
   const [dietaryPattern, setDietaryPattern] = useState<DietaryPattern | "">("");
   const [allergies, setAllergies] = useState("");
   const [tracksPeptides, setTracksPeptides] = useState<boolean | null>(null);
-  const [peptideCategory, setPeptideCategory] = useState<PeptideCategory | "">("");
+  const [peptideCategories, setPeptideCategories] = useState<PeptideCategory[]>([]);
+  const [selectedPeptides, setSelectedPeptides] = useState<string[]>([]);
+  const [peptideSearch, setPeptideSearch] = useState("");
+  const [customPeptide, setCustomPeptide] = useState("");
 
   // Screen 4 — Optional but valuable
   const [injuryFlags, setInjuryFlags] = useState<InjuryFlag[]>([]);
@@ -153,14 +195,42 @@ export function OnboardingWizard({
 
   const weightUnit = unitSystem === "IMPERIAL" ? "lb" : "kg";
   const liveFirstName = fullName.trim().split(" ")[0] || firstName;
-  const showTargetWeight =
-    primaryGoal !== "" && WEIGHT_CHANGE_GOALS.includes(primaryGoal);
+  const showTargetWeight = anyWeightChangeGoal(primaryGoals);
 
-  function toggleInjury(flag: InjuryFlag) {
-    setInjuryFlags((prev) =>
-      prev.includes(flag) ? prev.filter((f) => f !== flag) : [...prev, flag]
-    );
+  function toggleFrom<T>(setter: React.Dispatch<React.SetStateAction<T[]>>, v: T) {
+    setter((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
   }
+  const toggleGoal = (g: PrimaryGoal) => toggleFrom(setPrimaryGoals, g);
+  const toggleCategory = (c: PeptideCategory) => toggleFrom(setPeptideCategories, c);
+  const togglePeptide = (name: string) => toggleFrom(setSelectedPeptides, name);
+  const toggleInjury = (flag: InjuryFlag) => toggleFrom(setInjuryFlags, flag);
+
+  function addCustomPeptide() {
+    const name = customPeptide.trim();
+    if (!name) return;
+    if (!selectedPeptides.some((p) => p.toLowerCase() === name.toLowerCase())) {
+      setSelectedPeptides((prev) => [...prev, name]);
+    }
+    setCustomPeptide("");
+  }
+
+  // Peptide list: restrict to the chosen categories (if any), then apply the
+  // search box. Any already-selected custom entries (typed, not in the catalog)
+  // are surfaced separately as removable chips below.
+  const peptideOptions = useMemo(() => {
+    const q = peptideSearch.trim().toLowerCase();
+    return PEPTIDE_CATALOG_ENTRIES.filter(
+      (e) =>
+        (peptideCategories.length === 0 || peptideCategories.includes(e.category)) &&
+        (q === "" || e.name.toLowerCase().includes(q))
+    );
+  }, [peptideSearch, peptideCategories]);
+
+  const catalogNames = useMemo(
+    () => new Set(PEPTIDE_CATALOG_ENTRIES.map((e) => e.name)),
+    []
+  );
+  const customSelected = selectedPeptides.filter((p) => !catalogNames.has(p));
 
   // Resolve the current inputs into the metric payload the action expects.
   const buildInput = useMemo(
@@ -185,7 +255,7 @@ export function OnboardingWizard({
           dateOfBirth,
           heightCm: Math.round(resolvedHeightCm * 10) / 10,
           currentWeightKg: weight ? Math.round(toKg(weight) * 1000) / 1000 : 0,
-          primaryGoal: primaryGoal || undefined,
+          primaryGoals,
           goalWeightKg:
             showTargetWeight && goalWeight
               ? Math.round(toKg(goalWeight) * 1000) / 1000
@@ -196,8 +266,8 @@ export function OnboardingWizard({
           dietaryPattern: dietaryPattern || undefined,
           allergies: allergies.trim() || undefined,
           tracksPeptides: tracksPeptides ?? false,
-          peptideCategory:
-            tracksPeptides && peptideCategory ? peptideCategory : undefined,
+          peptideCategories: tracksPeptides ? peptideCategories : [],
+          peptides: tracksPeptides ? selectedPeptides : [],
           healthProfile: {
             injuryFlags,
             injuryNotes: injuryNotes.trim(),
@@ -208,9 +278,9 @@ export function OnboardingWizard({
       },
     [
       fullName, unitSystem, sex, dateOfBirth, heightCm, heightFt, heightIn, weight,
-      primaryGoal, goalWeight, showTargetWeight, activityLevel, experience,
-      trainingDays, dietaryPattern, allergies, tracksPeptides, peptideCategory,
-      injuryFlags, injuryNotes, conditions,
+      primaryGoals, goalWeight, showTargetWeight, activityLevel, experience,
+      trainingDays, dietaryPattern, allergies, tracksPeptides, peptideCategories,
+      selectedPeptides, injuryFlags, injuryNotes, conditions,
     ]
   );
 
@@ -410,10 +480,13 @@ export function OnboardingWizard({
             title="Your goals"
             subtitle="This sets your calorie target and tailors what the coach suggests. Skip anything you're unsure about."
           >
-            <Field label="Primary goal">
-              <ChoiceGrid<PrimaryGoal>
-                value={primaryGoal}
-                onChange={setPrimaryGoal}
+            <Field
+              label="Primary goals"
+              hint="Pick all that apply. Fat loss + muscle together = body recomposition (maintenance calories)."
+            >
+              <MultiChoiceGrid<PrimaryGoal>
+                values={primaryGoals}
+                onToggle={toggleGoal}
                 options={PRIMARY_GOALS.map((g) => ({
                   value: g,
                   label: PRIMARY_GOAL_LABELS[g],
@@ -513,16 +586,110 @@ export function OnboardingWizard({
             </Field>
 
             {tracksPeptides === true && (
-              <Field label="Which category applies?" hint="Category only — no specific compounds or doses.">
-                <ChoiceGrid<PeptideCategory>
-                  value={peptideCategory}
-                  onChange={setPeptideCategory}
-                  options={PEPTIDE_CATEGORIES.map((c) => ({
-                    value: c,
-                    label: PEPTIDE_CATEGORY_LABELS[c],
-                  }))}
-                />
-              </Field>
+              <>
+                <MedicalDisclaimer />
+
+                <Field
+                  label="Which categories apply?"
+                  hint="Categories only, no doses. Pick all that apply."
+                >
+                  <MultiChoiceGrid<PeptideCategory>
+                    columns={2}
+                    values={peptideCategories}
+                    onToggle={toggleCategory}
+                    options={PEPTIDE_CATEGORIES.map((c) => ({
+                      value: c,
+                      label: PEPTIDE_CATEGORY_LABELS[c],
+                    }))}
+                  />
+                </Field>
+
+                <Field
+                  label="Which peptides are you currently using?"
+                  hint="Select what your provider has you on — we record names only, never doses. You'll add protocol details in the Peptides section."
+                >
+                  <Input
+                    value={peptideSearch}
+                    onChange={(e) => setPeptideSearch(e.target.value)}
+                    placeholder="Search peptides…"
+                    aria-label="Search peptides"
+                  />
+                  <div className="mt-2 flex max-h-60 flex-wrap gap-2 overflow-y-auto">
+                    {peptideOptions.map((e) => {
+                      const selected = selectedPeptides.includes(e.name);
+                      return (
+                        <button
+                          key={e.name}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => togglePeptide(e.name)}
+                          className={
+                            "inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-medium transition " +
+                            (selected
+                              ? "border-primary bg-primary/10 text-foreground"
+                              : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground")
+                          }
+                        >
+                          {selected && <Check className="h-3.5 w-3.5 text-primary" />}
+                          {e.name}
+                        </button>
+                      );
+                    })}
+                    {peptideOptions.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        No matches — add it as a custom entry below.
+                      </p>
+                    )}
+                  </div>
+                </Field>
+
+                <Field label="Not listed? Add your own">
+                  <div className="flex gap-2">
+                    <Input
+                      value={customPeptide}
+                      onChange={(e) => setCustomPeptide(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addCustomPeptide();
+                        }
+                      }}
+                      placeholder="e.g. a compound not in the list"
+                      maxLength={120}
+                    />
+                    <Button type="button" variant="outline" onClick={addCustomPeptide}>
+                      Add
+                    </Button>
+                  </div>
+                  {customSelected.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {customSelected.map((name) => (
+                        <span
+                          key={name}
+                          className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary/10 px-3 py-1.5 text-sm font-medium"
+                        >
+                          {name}
+                          <button
+                            type="button"
+                            aria-label={`Remove ${name}`}
+                            onClick={() => togglePeptide(name)}
+                            className="text-muted-foreground transition hover:text-foreground"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </Field>
+
+                {selectedPeptides.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {selectedPeptides.length} selected · added to your Peptides
+                    section when you finish.
+                  </p>
+                )}
+              </>
             )}
           </Screen>
         )}

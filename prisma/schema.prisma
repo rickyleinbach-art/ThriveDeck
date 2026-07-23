@@ -33,7 +33,11 @@ model Profile {
 
   // First-time onboarding answers (Phase 5). All optional so a skipped wizard
   // never blocks anything; `onboarded` above is the wizard-complete flag.
-  primaryGoal         PrimaryGoal?        @map("primary_goal")
+  // Multi-select onboarding answers. DB stores these as text[] with an array
+  // containment CHECK (see 0014); represented here as enum arrays for docs.
+  // The deprecated singular columns primary_goal / peptide_category still exist
+  // in the DB (kept for rollout safety) but are no longer read or written.
+  primaryGoals        PrimaryGoal[]       @map("primary_goals")
   trainingExperience  TrainingExperience? @map("training_experience")
   trainingDaysPerWeek Int?                @map("training_days_per_week")
   dietaryPattern      DietaryPattern?     @map("dietary_pattern")
@@ -41,7 +45,7 @@ model Profile {
   // Gates the Peptides module app-wide (nav, dashboard, analytics, route).
   // Defaults true so existing users keep it; the wizard sets it explicitly.
   tracksPeptides      Boolean             @default(true) @map("tracks_peptides")
-  peptideCategory     PeptideCategory?    @map("peptide_category")
+  peptideCategories   PeptideCategory[]   @map("peptide_categories")
   // Sensitive Screen-4 health data (injuryFlags, injuryNotes, conditions,
   // consentAt); shape in src/lib/validations/onboarding.ts. Never logged.
   healthProfile       Json                @default("{}") @map("health_profile")

@@ -19,8 +19,8 @@ export interface CoachContext {
   weight: WeightInsights | null;
 
   // Onboarding answers (Phase 5 § 5.3) — seed the coach so its first
-  // suggestion is relevant instead of generic. Any may be null if skipped.
-  goal: PrimaryGoal | null;
+  // suggestion is relevant instead of generic. May be empty/null if skipped.
+  goals: PrimaryGoal[];
   experience: TrainingExperience | null;
   trainingDaysPerWeek: number | null;
   dietaryPattern: DietaryPattern | null;

@@ -31,14 +31,14 @@ export interface Profile {
   activityLevel: NonNullable<ProfileInput["activityLevel"]> | null;
   notificationPrefs: NotificationPrefs;
   onboarded: boolean;
-  // Onboarding answers (Phase 5).
-  primaryGoal: PrimaryGoal | null;
+  // Onboarding answers (Phase 5). Goals + peptide categories are multi-select.
+  primaryGoals: PrimaryGoal[];
   trainingExperience: TrainingExperience | null;
   trainingDaysPerWeek: number | null;
   dietaryPattern: DietaryPattern | null;
   allergies: string | null;
   tracksPeptides: boolean;
-  peptideCategory: PeptideCategory | null;
+  peptideCategories: PeptideCategory[];
   healthProfile: HealthProfile;
 }
 
@@ -52,7 +52,7 @@ export async function getProfile(): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id, email, full_name, date_of_birth, sex, height_cm, timezone, unit_system, goal_weight_kg, activity_level, notification_prefs, onboarded, primary_goal, training_experience, training_days_per_week, dietary_pattern, allergies, tracks_peptides, peptide_category, health_profile"
+      "id, email, full_name, date_of_birth, sex, height_cm, timezone, unit_system, goal_weight_kg, activity_level, notification_prefs, onboarded, primary_goals, training_experience, training_days_per_week, dietary_pattern, allergies, tracks_peptides, peptide_categories, health_profile"
     )
     .eq("id", user.id)
     .single();
@@ -81,14 +81,16 @@ export async function getProfile(): Promise<Profile | null> {
       ? notificationPrefs.data
       : DEFAULT_NOTIFICATION_PREFS,
     onboarded: data.onboarded,
-    primaryGoal: data.primary_goal,
+    primaryGoals: Array.isArray(data.primary_goals) ? data.primary_goals : [],
     trainingExperience: data.training_experience,
     trainingDaysPerWeek: data.training_days_per_week,
     dietaryPattern: data.dietary_pattern,
     allergies: data.allergies,
     // Column defaults true; only an explicit false hides the module.
     tracksPeptides: data.tracks_peptides !== false,
-    peptideCategory: data.peptide_category,
+    peptideCategories: Array.isArray(data.peptide_categories)
+      ? data.peptide_categories
+      : [],
     healthProfile: healthProfile.success ? healthProfile.data : DEFAULT_HEALTH_PROFILE,
   };
 }

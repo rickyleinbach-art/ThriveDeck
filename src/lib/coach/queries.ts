@@ -53,7 +53,7 @@ export async function getCoachContext(): Promise<CoachContext> {
 
   let proteinFoods: SimpleFood[] = [];
   let templates: SimpleTemplate[] = [];
-  let goal: CoachContext["goal"] = null;
+  let goals: CoachContext["goals"] = [];
   let experience: CoachContext["experience"] = null;
   let trainingDaysPerWeek: number | null = null;
   let dietaryPattern: CoachContext["dietaryPattern"] = null;
@@ -77,14 +77,16 @@ export async function getCoachContext(): Promise<CoachContext> {
       supabase
         .from("profiles")
         .select(
-          "primary_goal, training_experience, training_days_per_week, dietary_pattern, allergies"
+          "primary_goals, training_experience, training_days_per_week, dietary_pattern, allergies"
         )
         .eq("id", user.id)
         .maybeSingle(),
     ]);
 
     if (profileRes.data) {
-      goal = profileRes.data.primary_goal ?? null;
+      goals = Array.isArray(profileRes.data.primary_goals)
+        ? profileRes.data.primary_goals
+        : [];
       experience = profileRes.data.training_experience ?? null;
       trainingDaysPerWeek = profileRes.data.training_days_per_week ?? null;
       dietaryPattern = profileRes.data.dietary_pattern ?? null;
@@ -150,7 +152,7 @@ export async function getCoachContext(): Promise<CoachContext> {
     analytics,
     scores,
     weight,
-    goal,
+    goals,
     experience,
     trainingDaysPerWeek,
     dietaryPattern,

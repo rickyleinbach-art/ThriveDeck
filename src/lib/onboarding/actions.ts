@@ -5,30 +5,17 @@ import { createClient } from "@/lib/supabase/server";
 import {
   onboardingSchema,
   hasHealthData,
+  resolveCalorieIntent,
   type OnboardingInput,
-  type PrimaryGoal,
 } from "@/lib/validations/onboarding";
 import {
   ageFromDateOfBirth,
   calculateMacroTargets,
 } from "@/lib/nutrition/calculations";
-import type { CalculatorGoal } from "@/lib/validations/nutrition";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
 const KG_PER_LB = 0.45359237;
-
-// A 6-way onboarding goal collapses to the 3-way calorie adjustment the macro
-// calculator understands. Performance/health/recovery/maintain all sit at
-// maintenance — we never impose a deficit or surplus the user didn't ask for.
-const GOAL_TO_CALCULATOR: Record<PrimaryGoal, CalculatorGoal> = {
-  LOSE_FAT: "LOSE",
-  BUILD_MUSCLE: "GAIN",
-  IMPROVE_PERFORMANCE: "MAINTAIN",
-  GENERAL_HEALTH: "MAINTAIN",
-  RECOVERY_REHAB: "MAINTAIN",
-  MAINTAIN: "MAINTAIN",
-};
 
 // Completes the first-time wizard: persists every answer, records the starting
 // weigh-in, and — when we have enough to do it — pre-populates calorie/macro
@@ -75,13 +62,13 @@ export async function completeOnboarding(
       unit_system: d.unitSystem,
       goal_weight_kg: d.goalWeightKg ?? null,
       activity_level: d.activityLevel ?? null,
-      primary_goal: d.primaryGoal ?? null,
+      primary_goals: d.primaryGoals ?? [],
       training_experience: d.trainingExperience ?? null,
       training_days_per_week: d.trainingDaysPerWeek ?? null,
       dietary_pattern: d.dietaryPattern ?? null,
       allergies: d.allergies || null,
       tracks_peptides: d.tracksPeptides,
-      peptide_category: d.tracksPeptides ? d.peptideCategory ?? null : null,
+      peptide_categories: d.tracksPeptides ? d.peptideCategories ?? [] : [],
       health_profile: healthProfile,
       onboarded: true,
     })
@@ -89,6 +76,26 @@ export async function completeOnboarding(
 
   if (profileError) {
     return { success: false, error: "Could not save your answers" };
+  }
+
+  // Seed the Peptides module with the compounds the user said they're taking —
+  // record-only (name + Active status, no dose/frequency, never app-suggested;
+  // CLAUDE.md § Health & safety). The user fills in provider/protocol detail in
+  // the module itself. De-duped and capped by the schema.
+  if (d.tracksPeptides && d.peptides && d.peptides.length > 0) {
+    const seen = new Set<string>();
+    const rows = d.peptides
+      .map((name) => name.trim())
+      .filter((name) => {
+        const key = name.toLowerCase();
+        if (!name || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((name) => ({ user_id: user.id, name, status: "ACTIVE" }));
+    if (rows.length > 0) {
+      await supabase.from("peptides").insert(rows);
+    }
   }
 
   // Record the starting weigh-in in the user's chosen display unit, so it lines
@@ -116,7 +123,7 @@ export async function completeOnboarding(
       heightCm: d.heightCm,
       weightKg: d.currentWeightKg,
       activityLevel: d.activityLevel,
-      goal: d.primaryGoal ? GOAL_TO_CALCULATOR[d.primaryGoal] : "MAINTAIN",
+      goal: resolveCalorieIntent(d.primaryGoals ?? []),
     });
     await supabase.from("nutrition_targets").upsert(
       {

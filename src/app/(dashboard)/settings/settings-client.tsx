@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import {
   updateHealthProfile,
   updateNotificationPrefs,
@@ -115,14 +114,14 @@ export function SettingsClient({
   initialUnitSystem,
   initialNotificationPrefs,
   initialTracksPeptides,
-  initialPeptideCategory,
+  initialPeptideCategories,
   initialHealthProfile,
 }: {
   email: string;
   initialUnitSystem: UnitSystem;
   initialNotificationPrefs: NotificationPrefs;
   initialTracksPeptides: boolean;
-  initialPeptideCategory: PeptideCategory | null;
+  initialPeptideCategories: PeptideCategory[];
   initialHealthProfile: HealthProfile;
 }) {
   const router = useRouter();
@@ -137,8 +136,8 @@ export function SettingsClient({
 
   // Peptide tracking — the single flag that shows/hides the Peptides module.
   const [tracksPeptides, setTracksPeptides] = useState(initialTracksPeptides);
-  const [peptideCategory, setPeptideCategory] = useState<PeptideCategory | "">(
-    initialPeptideCategory ?? ""
+  const [peptideCategories, setPeptideCategories] = useState<PeptideCategory[]>(
+    initialPeptideCategories
   );
   const [peptideError, setPeptideError] = useState<string | null>(null);
 
@@ -151,15 +150,12 @@ export function SettingsClient({
     setMounted(true);
   }, []);
 
-  // Flipping the toggle (or changing category) persists immediately and
+  // Flipping the toggle (or changing categories) persists immediately and
   // refreshes so the nav reveals/hides the module without a reload.
-  function persistPeptides(nextTracks: boolean, nextCategory: PeptideCategory | "") {
+  function persistPeptides(nextTracks: boolean, nextCategories: PeptideCategory[]) {
     setPeptideError(null);
     startTransition(async () => {
-      const result = await updatePeptideTracking(
-        nextTracks,
-        nextCategory || null
-      );
+      const result = await updatePeptideTracking(nextTracks, nextCategories);
       if (!result.success) {
         setPeptideError(result.error);
         return;
@@ -170,13 +166,17 @@ export function SettingsClient({
 
   function togglePeptides(value: boolean) {
     setTracksPeptides(value);
-    if (!value) setPeptideCategory("");
-    persistPeptides(value, value ? peptideCategory : "");
+    const nextCategories = value ? peptideCategories : [];
+    if (!value) setPeptideCategories([]);
+    persistPeptides(value, nextCategories);
   }
 
-  function changePeptideCategory(value: PeptideCategory | "") {
-    setPeptideCategory(value);
-    persistPeptides(tracksPeptides, value);
+  function togglePeptideCategory(value: PeptideCategory) {
+    const next = peptideCategories.includes(value)
+      ? peptideCategories.filter((c) => c !== value)
+      : [...peptideCategories, value];
+    setPeptideCategories(next);
+    persistPeptides(tracksPeptides, next);
   }
 
   function toggleInjury(flag: InjuryFlag) {
@@ -319,24 +319,31 @@ export function SettingsClient({
         />
         {tracksPeptides && (
           <div className="mt-3 space-y-1.5">
-            <Label htmlFor="peptideCategory">Category</Label>
-            <Select
-              id="peptideCategory"
-              value={peptideCategory}
-              disabled={pending}
-              onChange={(e) =>
-                changePeptideCategory(e.target.value as PeptideCategory | "")
-              }
-            >
-              <option value="">Select…</option>
-              {PEPTIDE_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {PEPTIDE_CATEGORY_LABELS[c]}
-                </option>
-              ))}
-            </Select>
+            <Label>Categories</Label>
+            <div className="flex flex-wrap gap-2">
+              {PEPTIDE_CATEGORIES.map((c) => {
+                const selected = peptideCategories.includes(c);
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={selected}
+                    disabled={pending}
+                    onClick={() => togglePeptideCategory(c)}
+                    className={
+                      "rounded-full border px-3 py-1.5 text-sm font-medium transition disabled:opacity-50 " +
+                      (selected
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground")
+                    }
+                  >
+                    {PEPTIDE_CATEGORY_LABELS[c]}
+                  </button>
+                );
+              })}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Category only — ThriveDeck records adherence and results, never
+              Categories only — ThriveDeck records adherence and results, never
               dosing advice.
             </p>
           </div>

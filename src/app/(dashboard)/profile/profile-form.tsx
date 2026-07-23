@@ -16,6 +16,7 @@ import {
   PRIMARY_GOAL_LABELS,
   TRAINING_EXPERIENCES,
   TRAINING_EXPERIENCE_LABELS,
+  type PrimaryGoal,
 } from "@/lib/validations/onboarding";
 
 const KG_PER_LB = 0.45359237;
@@ -92,7 +93,9 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   );
 
   // Onboarding answers, editable later here (Phase 5 § 5.5).
-  const [primaryGoal, setPrimaryGoal] = useState<string>(profile.primaryGoal ?? "");
+  const [primaryGoals, setPrimaryGoals] = useState<PrimaryGoal[]>(
+    profile.primaryGoals
+  );
   const [trainingExperience, setTrainingExperience] = useState<string>(
     profile.trainingExperience ?? ""
   );
@@ -154,7 +157,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       unitSystem,
       goalWeightKg: resolvedGoalKg,
       activityLevel: activityLevel || undefined,
-      primaryGoal: primaryGoal || undefined,
+      primaryGoals,
       trainingExperience: trainingExperience || undefined,
       trainingDaysPerWeek: trainingDays ? Number(trainingDays) : undefined,
       dietaryPattern: dietaryPattern || undefined,
@@ -309,22 +312,42 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="primaryGoal">Primary goal</Label>
-          <Select
-            id="primaryGoal"
-            value={primaryGoal}
-            onChange={(e) => setPrimaryGoal(e.target.value)}
-          >
-            <option value="">Select…</option>
-            {PRIMARY_GOALS.map((g) => (
-              <option key={g} value={g}>
+      <div className="space-y-1.5">
+        <Label>Primary goals</Label>
+        <div className="flex flex-wrap gap-2">
+          {PRIMARY_GOALS.map((g) => {
+            const selected = primaryGoals.includes(g);
+            return (
+              <button
+                key={g}
+                type="button"
+                aria-pressed={selected}
+                onClick={() =>
+                  setPrimaryGoals((prev) =>
+                    prev.includes(g)
+                      ? prev.filter((x) => x !== g)
+                      : [...prev, g]
+                  )
+                }
+                className={
+                  "rounded-full border px-3 py-1.5 text-sm font-medium transition " +
+                  (selected
+                    ? "border-primary bg-primary/10 text-foreground"
+                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground")
+                }
+              >
                 {PRIMARY_GOAL_LABELS[g]}
-              </option>
-            ))}
-          </Select>
+              </button>
+            );
+          })}
         </div>
+        <p className="text-xs text-muted-foreground">
+          Pick all that apply. Fat loss and muscle gain together are treated as
+          body recomposition (maintenance calories).
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="dietaryPattern">Dietary pattern</Label>
           <Select

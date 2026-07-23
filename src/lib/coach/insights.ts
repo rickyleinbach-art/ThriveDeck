@@ -13,9 +13,14 @@ import {
 const round = (n: number) => Math.round(n);
 const fmt1 = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
 
-// A short "for your <goal>" phrase for coach copy, or "" if the goal is unset.
+// A short "for your <goal>" phrase for coach copy, or "" if none are set.
+// Handles the multi-goal case with a natural join.
 function goalPhrase(ctx: CoachContext): string {
-  return ctx.goal ? ` for your ${PRIMARY_GOAL_LABELS[ctx.goal].toLowerCase()} goal` : "";
+  const labels = ctx.goals.map((g) => PRIMARY_GOAL_LABELS[g].toLowerCase());
+  if (labels.length === 0) return "";
+  if (labels.length === 1) return ` for your ${labels[0]} goal`;
+  const last = labels[labels.length - 1];
+  return ` for your ${labels.slice(0, -1).join(", ")} and ${last} goals`;
 }
 
 // Dietary constraints the coach should respect in meal suggestions.

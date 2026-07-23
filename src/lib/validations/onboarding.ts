@@ -27,9 +27,27 @@ export const PRIMARY_GOAL_LABELS: Record<PrimaryGoal, string> = {
   MAINTAIN: "Maintain current",
 };
 
-// Goals that involve a target bodyweight — the wizard only shows the target
-// weight field for these.
+// Goals that involve a target bodyweight — the wizard shows the target weight
+// field when any of these is selected.
 export const WEIGHT_CHANGE_GOALS: PrimaryGoal[] = ["LOSE_FAT", "BUILD_MUSCLE"];
+
+export function anyWeightChangeGoal(goals: PrimaryGoal[]): boolean {
+  return goals.some((g) => WEIGHT_CHANGE_GOALS.includes(g));
+}
+
+// Collapse a multi-goal selection into the single calorie intent the macro
+// calculator understands. Fat-loss + muscle together = body recomposition, so
+// we hold at maintenance rather than pick a deficit or surplus the user didn't
+// clearly ask for.
+export type CalorieIntent = "LOSE" | "MAINTAIN" | "GAIN";
+export function resolveCalorieIntent(goals: PrimaryGoal[]): CalorieIntent {
+  const lose = goals.includes("LOSE_FAT");
+  const gain = goals.includes("BUILD_MUSCLE");
+  if (lose && gain) return "MAINTAIN";
+  if (lose) return "LOSE";
+  if (gain) return "GAIN";
+  return "MAINTAIN";
+}
 
 export const TRAINING_EXPERIENCES = ["NEW", "SOME", "ADVANCED"] as const;
 export type TrainingExperience = (typeof TRAINING_EXPERIENCES)[number];
@@ -136,8 +154,8 @@ export const onboardingSchema = z.object({
   heightCm: z.number().positive("Enter your height").max(300),
   currentWeightKg: z.number().positive("Enter your current weight").max(500),
 
-  // Screen 2 — Goals & activity (skippable)
-  primaryGoal: z.enum(PRIMARY_GOALS).optional(),
+  // Screen 2 — Goals & activity (skippable). Goals are multi-select.
+  primaryGoals: z.array(z.enum(PRIMARY_GOALS)).max(6).default([]),
   goalWeightKg: z.number().positive().max(500).optional(),
   activityLevel: z.enum(ACTIVITY_VALUES).optional(),
   trainingExperience: z.enum(TRAINING_EXPERIENCES).optional(),
@@ -145,10 +163,13 @@ export const onboardingSchema = z.object({
 
   // Screen 3 — Nutrition & substances (skippable). tracksPeptides always has a
   // value (the wizard defaults it to false) so the gate is never ambiguous.
+  // Categories are multi-select; `peptides` are record-only compound names the
+  // user selected (or typed) — never doses. Seeded into the Peptides module.
   dietaryPattern: z.enum(DIETARY_PATTERNS).optional(),
   allergies: z.string().max(1000).optional(),
   tracksPeptides: z.boolean(),
-  peptideCategory: z.enum(PEPTIDE_CATEGORIES).optional(),
+  peptideCategories: z.array(z.enum(PEPTIDE_CATEGORIES)).max(5).default([]),
+  peptides: z.array(z.string().trim().min(1).max(120)).max(50).default([]),
 
   // Screen 4 — Optional but valuable (sensitive; skippable)
   healthProfile: healthProfileSchema.optional(),
