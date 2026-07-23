@@ -4,6 +4,15 @@ import { z } from "zod";
 export const MEAL_TYPES = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"] as const;
 export type MealType = (typeof MEAL_TYPES)[number];
 
+export const FOOD_SOURCES = [
+  "MANUAL",
+  "BARCODE",
+  "USDA",
+  "RESTAURANT",
+  "LABEL_SCAN",
+] as const;
+export type FoodSource = (typeof FOOD_SOURCES)[number];
+
 export const MEAL_LABELS: Record<MealType, string> = {
   BREAKFAST: "Breakfast",
   LUNCH: "Lunch",
@@ -57,6 +66,10 @@ export const logFoodSchema = z
     catalogFoodId: z.string().uuid().optional(),
     custom: foodItemSchema.optional(),
     saveToLibrary: z.boolean().optional(),
+    // Provenance (Phase 2 label scan). Optional so existing callers are
+    // unaffected; only written to food_logs when present.
+    source: z.enum(FOOD_SOURCES).optional(),
+    extractedJson: z.unknown().optional(),
   })
   .refine((data) => data.foodItemId || data.catalogFoodId || data.custom, {
     message: "Pick a food or enter one manually",
@@ -68,6 +81,51 @@ export const catalogSearchSchema = z.object({
 });
 
 export type LogFoodInput = z.infer<typeof logFoodSchema>;
+
+// ---------------------------------------------------------------------------
+// Nutrition-label camera extraction
+// ---------------------------------------------------------------------------
+// The label-extraction API route asks the model to return JSON matching this
+// exact shape. We never trust the model's output — every field is validated and
+// range-clamped server-side before it reaches the client. Values are per the
+// label's stated serving size; nulls mean "not visible / not present".
+
+// Tolerant nullable number: accepts a number, null, "", or a numeric-ish string
+// ("2.5", "230mg"), rejecting anything outside [0, max] to null.
+const labelNumber = (max: number) =>
+  z.preprocess((v) => {
+    if (v === null || v === undefined || v === "") return null;
+    if (typeof v === "string") {
+      const n = Number(v.replace(/[^0-9.]/g, ""));
+      return Number.isFinite(n) ? n : null;
+    }
+    return v;
+  }, z.number().min(0).max(max).nullable().catch(null));
+
+export const extractedLabelSchema = z.object({
+  serving_size: z.string().max(120).nullable().catch(null),
+  servings_per_container: labelNumber(10000),
+  calories: labelNumber(10000),
+  total_fat_g: labelNumber(1000),
+  saturated_fat_g: labelNumber(1000),
+  trans_fat_g: labelNumber(1000),
+  cholesterol_mg: labelNumber(100000),
+  sodium_mg: labelNumber(100000),
+  total_carb_g: labelNumber(1000),
+  fiber_g: labelNumber(500),
+  total_sugars_g: labelNumber(1000),
+  added_sugars_g: labelNumber(1000),
+  protein_g: labelNumber(1000),
+  confidence: z.enum(["high", "medium", "low"]).catch("low"),
+});
+
+export type ExtractedLabel = z.infer<typeof extractedLabelSchema>;
+
+// Payload the client POSTs to /api/nutrition/extract-label.
+export const extractLabelRequestSchema = z.object({
+  imageBase64: z.string().min(1).max(9_000_000), // ~6.7 MB decoded ceiling
+  mediaType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]),
+});
 
 export const nutritionTargetSchema = z.object({
   calories: z.number().min(0).max(20000),

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import {
   displayWeight,
@@ -33,7 +35,7 @@ export default async function PersonalRecordsPage() {
           </p>
         </div>
         <Link href="/exercise" className="text-sm text-primary hover:underline">
-          ← Back to Exercise
+          <Icon icon={ArrowLeft} size="sm" className="mr-1 inline align-[-0.2em]" />Back to Exercise
         </Link>
       </div>
 

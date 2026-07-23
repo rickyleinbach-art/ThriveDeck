@@ -254,6 +254,12 @@ export async function logFood(input: LogFoodInput): Promise<ActionResult> {
     logged_on: parsed.data.loggedOn,
     servings: parsed.data.servings,
     ...snapshot,
+    // Provenance columns are only included when supplied (label scan), so
+    // manual/catalog/custom logging is byte-for-byte unchanged.
+    ...(parsed.data.source ? { source: parsed.data.source } : {}),
+    ...(parsed.data.extractedJson !== undefined
+      ? { extracted_json: parsed.data.extractedJson }
+      : {}),
   });
 
   if (error) return { success: false, error: "Could not log food" };

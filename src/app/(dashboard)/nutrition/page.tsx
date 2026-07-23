@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { dayTotals } from "@/lib/nutrition/calculations";
 import {
   getFoodItems,
@@ -11,6 +13,7 @@ import { deleteFoodLogFormAction } from "@/lib/nutrition/actions";
 import { MEAL_LABELS, MEAL_TYPES } from "@/lib/validations/nutrition";
 import type { FoodLog } from "@/lib/nutrition/types";
 import { LogFoodForm } from "./log-food-form";
+import { LabelScan } from "./label-scan";
 
 function isValidDate(value: string | undefined): value is string {
   return !!value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !isNaN(Date.parse(value));
@@ -150,7 +153,7 @@ export default async function NutritionPage({
             className="rounded-lg border border-border px-3 py-1.5 hover:bg-accent"
             aria-label="Previous day"
           >
-            ←
+            <Icon icon={ChevronLeft} size="sm" />
           </Link>
           {date !== today && (
             <Link href="/nutrition" className="text-primary hover:underline">
@@ -163,7 +166,7 @@ export default async function NutritionPage({
               className="rounded-lg border border-border px-3 py-1.5 hover:bg-accent"
               aria-label="Next day"
             >
-              →
+              <Icon icon={ChevronRight} size="sm" />
             </Link>
           )}
           <span className="text-muted-foreground">·</span>
@@ -206,6 +209,9 @@ export default async function NutritionPage({
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card title="Log food" className="lg:col-span-1">
+          <div className="mb-4 border-b border-border pb-4">
+            <LabelScan date={date} />
+          </div>
           <LogFoodForm date={date} foodItems={foodItems} />
         </Card>
 

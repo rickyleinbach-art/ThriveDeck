@@ -139,7 +139,7 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="mealType">Meal</Label>
           <Select
@@ -246,7 +246,7 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="servingSize">Serving size</Label>
               <Input
@@ -277,7 +277,7 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="calories">Calories</Label>
               <Input
@@ -305,7 +305,7 @@ export function LogFoodForm({ date, foodItems }: { date: string; foodItems: Food
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="carbsG">Carbs (g)</Label>
               <Input

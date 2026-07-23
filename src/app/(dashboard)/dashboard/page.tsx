@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { ArrowRight, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
 import { Sparkline } from "@/components/ui/sparkline";
 import { ScoreCard } from "@/components/charts/score-card";
 import { getBodyMetrics } from "@/lib/weight/queries";
@@ -45,8 +47,9 @@ function StatCard({
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-16 items-center text-sm text-muted-foreground/70">
+    <div className="flex h-16 items-center gap-1 text-sm text-muted-foreground/70">
       {children}
+      <Icon icon={ArrowRight} size="sm" />
     </div>
   );
 }
@@ -200,7 +203,9 @@ export default async function DashboardPage() {
                 {round(totals.proteinG)}
                 <span className="ml-1 text-sm font-normal text-muted-foreground">g today</span>
               </p>
-              <p className="mt-1 text-xs text-primary">Set a target →</p>
+              <p className="mt-1 inline-flex items-center gap-1 text-xs text-primary">
+                Set a target <Icon icon={ArrowRight} size="sm" />
+              </p>
             </>
           )}
         </StatCard>
@@ -227,7 +232,7 @@ export default async function DashboardPage() {
               </>
             )
           ) : (
-            <Empty>Track water →</Empty>
+            <Empty>Track water</Empty>
           )}
         </StatCard>
 
@@ -236,15 +241,19 @@ export default async function DashboardPage() {
           {activeWorkout ? (
             <div>
               <p className="truncate text-lg font-semibold">{activeWorkout.name}</p>
-              <p className="text-sm text-primary">In progress →</p>
+              <p className="inline-flex items-center gap-1 text-sm text-primary">
+                In progress <Icon icon={ArrowRight} size="sm" />
+              </p>
             </div>
           ) : workoutDoneToday ? (
             <div>
               <p className="truncate text-lg font-semibold">{workoutDoneToday.name}</p>
-              <p className="text-sm text-muted-foreground">Completed today ✓</p>
+              <p className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                Completed today <Icon icon={Check} size="sm" className="text-primary" />
+              </p>
             </div>
           ) : (
-            <Empty>No workout yet — start one →</Empty>
+            <Empty>No workout yet — start one</Empty>
           )}
         </StatCard>
 
@@ -263,7 +272,7 @@ export default async function DashboardPage() {
               )}
             </>
           ) : (
-            <Empty>Track steps →</Empty>
+            <Empty>Track steps</Empty>
           )}
         </StatCard>
 
@@ -277,7 +286,7 @@ export default async function DashboardPage() {
               <Sparkline data={weightSpark} />
             </div>
           ) : (
-            <Empty>Log your first weigh-in →</Empty>
+            <Empty>Log your first weigh-in</Empty>
           )}
         </StatCard>
 
@@ -290,7 +299,7 @@ export default async function DashboardPage() {
               <Sparkline data={bodyFatSpark} />
             </div>
           ) : (
-            <Empty>Log a body-fat reading →</Empty>
+            <Empty>Log a body-fat reading</Empty>
           )}
         </StatCard>
 
@@ -305,7 +314,7 @@ export default async function DashboardPage() {
               </span>
             </p>
           ) : (
-            <Empty>Build your daily checklist →</Empty>
+            <Empty>Build your daily checklist</Empty>
           )}
         </StatCard>
 
@@ -315,7 +324,7 @@ export default async function DashboardPage() {
               {formatValue(sleep.value, sleep.habit.unit ?? "hours")}
             </p>
           ) : (
-            <Empty>Track sleep →</Empty>
+            <Empty>Track sleep</Empty>
           )}
         </StatCard>
 
@@ -332,7 +341,7 @@ export default async function DashboardPage() {
               </p>
             </div>
           ) : (
-            <Empty>No reminders set →</Empty>
+            <Empty>No reminders set</Empty>
           )}
         </StatCard>
 

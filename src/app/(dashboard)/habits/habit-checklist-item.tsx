@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { logHabit, removeHabitLog } from "@/lib/habits/actions";
@@ -26,6 +28,10 @@ export function HabitChecklistItem({
   const [amount, setAmount] = useState(todayValue?.toString() ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Optimistic check state: flips instantly on tap, reconciles with the server
+  // refresh, and reverts if the write fails.
+  const [optimisticDone, setOptimisticDone] = useState(done);
+  useEffect(() => setOptimisticDone(done), [done]);
 
   async function save(value: number) {
     setError(null);
@@ -41,12 +47,15 @@ export function HabitChecklistItem({
 
   async function toggleCheck() {
     setError(null);
+    const next = !optimisticDone;
+    setOptimisticDone(next); // optimistic flip
     setBusy(true);
-    const result = done
-      ? await removeHabitLog(habit.id, today)
-      : await logHabit({ habitId: habit.id, loggedOn: today, value: 1 });
+    const result = next
+      ? await logHabit({ habitId: habit.id, loggedOn: today, value: 1 })
+      : await removeHabitLog(habit.id, today);
     setBusy(false);
     if (!result.success) {
+      setOptimisticDone(!next); // revert
       setError(result.error);
       return;
     }
@@ -57,12 +66,12 @@ export function HabitChecklistItem({
     <div
       className={cn(
         "rounded-xl border p-3 transition",
-        done ? "border-primary/40 bg-primary/5" : "border-border"
+        optimisticDone ? "border-primary/40 bg-primary/5" : "border-border"
       )}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className={cn("truncate text-sm font-medium", done && "text-primary")}>
+          <p className={cn("truncate text-sm font-medium", optimisticDone && "text-primary")}>
             {habit.name}
           </p>
           {habit.goalType === "QUANTITY" || habit.goalType === "DURATION" ? (
@@ -79,13 +88,19 @@ export function HabitChecklistItem({
         {habit.goalType === "CHECK" ? (
           <Button
             type="button"
-            variant={done ? "default" : "outline"}
+            variant={optimisticDone ? "default" : "outline"}
             size="sm"
             disabled={busy}
             onClick={toggleCheck}
-            aria-pressed={done}
+            aria-pressed={optimisticDone}
           >
-            {done ? "Done ✓" : "Mark done"}
+            {optimisticDone ? (
+              <span className="inline-flex items-center gap-1">
+                Done <Icon icon={Check} size="sm" />
+              </span>
+            ) : (
+              "Mark done"
+            )}
           </Button>
         ) : habit.goalType === "RATING" ? null : (
           <form

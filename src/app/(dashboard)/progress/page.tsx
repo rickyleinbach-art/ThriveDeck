@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Target, Camera, Flag, ArrowRight, type LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
 import { METRIC_LABELS } from "@/lib/validations/weight";
 import {
   getBodyMetrics,
@@ -25,7 +27,7 @@ interface Milestone {
   date: string; // ISO
   title: string;
   detail: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 function latestOfType(metrics: BodyMetric[], type: string): BodyMetric | null {
@@ -68,7 +70,7 @@ export default async function ProgressPage() {
       date: g.achievedAt!,
       title: `Reached ${METRIC_LABELS[g.metricType].toLowerCase()} goal`,
       detail: formatValue(g.targetValue, g.unit),
-      icon: "🎯",
+      icon: Target,
     });
   }
   for (const p of photos) {
@@ -76,7 +78,7 @@ export default async function ProgressPage() {
       date: p.takenAt,
       title: "Progress photo",
       detail: p.weightKg != null ? formatValue(p.weightKg, "kg") : "Check-in",
-      icon: "📸",
+      icon: Camera,
     });
   }
   if (earliestWeight) {
@@ -84,7 +86,7 @@ export default async function ProgressPage() {
       date: earliestWeight.recordedAt,
       title: "Started tracking",
       detail: formatValue(earliestWeight.value, earliestWeight.unit),
-      icon: "🚩",
+      icon: Flag,
     });
   }
   milestones.sort((a, b) => b.date.localeCompare(a.date));
@@ -123,7 +125,8 @@ export default async function ProgressPage() {
                 <p className="text-lg font-semibold">
                   {current ? formatValue(current.value, current.unit) : "—"}
                   <span className="ml-1 text-sm font-normal text-muted-foreground">
-                    → {formatValue(goal.targetValue, goal.unit)}
+                    <Icon icon={ArrowRight} size="sm" className="mr-1 inline align-[-0.2em]" />
+                    {formatValue(goal.targetValue, goal.unit)}
                   </span>
                 </p>
                 {pct !== null && (
@@ -153,7 +156,7 @@ export default async function ProgressPage() {
                 No progress photos yet. Photos are private to your account.
               </p>
               <Link href="/weight" className="text-sm text-primary hover:underline">
-                Upload your first photo →
+                Upload your first photo <Icon icon={ArrowRight} size="sm" className="ml-1 inline align-[-0.2em]" />
               </Link>
             </div>
           ) : (
@@ -194,7 +197,7 @@ export default async function ProgressPage() {
             <ol className="space-y-4">
               {milestones.map((m, i) => (
                 <li key={`${m.date}-${i}`} className="flex gap-3">
-                  <span className="text-lg leading-none">{m.icon}</span>
+                  <Icon icon={m.icon} className="mt-0.5 text-primary" />
                   <div className="min-w-0">
                     <p className="text-sm font-medium">{m.title}</p>
                     <p className="text-xs text-muted-foreground">

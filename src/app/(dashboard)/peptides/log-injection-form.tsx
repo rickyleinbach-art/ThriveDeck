@@ -94,7 +94,7 @@ export function LogInjectionForm({ peptides }: { peptides: Peptide[] }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="injPeptide">Peptide</Label>
           <Select
@@ -136,7 +136,7 @@ export function LogInjectionForm({ peptides }: { peptides: Peptide[] }) {
 
       {status === "LOGGED" && (
         <>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="injDose">Dose taken (optional)</Label>
               <Input
@@ -166,7 +166,7 @@ export function LogInjectionForm({ peptides }: { peptides: Peptide[] }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="injSite">Injection site</Label>
               <Select

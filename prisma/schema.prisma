@@ -180,6 +180,10 @@ model FoodLog {
   fiberG      Float?    @map("fiber_g")
   sugarG      Float?    @map("sugar_g")
   sodiumMg    Float?    @map("sodium_mg")
+  // How this entry was created (analytics on entry method). LABEL_SCAN entries
+  // also keep the raw model-extracted JSON so systematic misreads can be spotted.
+  source       FoodSource @default(MANUAL)
+  extractedJson Json?     @map("extracted_json")
   createdAt   DateTime  @default(now()) @map("created_at")
 
   foodItem FoodItem? @relation(fields: [foodItemId], references: [id], onDelete: SetNull)
@@ -218,6 +222,7 @@ enum FoodSource {
   BARCODE
   USDA
   RESTAURANT
+  LABEL_SCAN
 
   @@map("food_source")
 }

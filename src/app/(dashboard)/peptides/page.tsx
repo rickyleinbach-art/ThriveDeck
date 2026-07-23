@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import {
   getCareProviders,
   getInjections,
@@ -152,8 +154,8 @@ export default async function PeptidesPage() {
                       </Button>
                     </form>
                     <form action={deleteReminderFormAction.bind(null, reminder.id)}>
-                      <Button type="submit" variant="ghost" size="sm" className="text-destructive">
-                        ✕
+                      <Button type="submit" variant="ghost" size="icon" aria-label="Delete" className="text-destructive">
+                        <Icon icon={X} />
                       </Button>
                     </form>
                   </div>
@@ -184,8 +186,8 @@ export default async function PeptidesPage() {
                     <p className="text-muted-foreground">{effect.description}</p>
                   </div>
                   <form action={deleteSideEffectFormAction.bind(null, effect.id)}>
-                    <Button type="submit" variant="ghost" size="sm" className="text-destructive">
-                      ✕
+                    <Button type="submit" variant="ghost" size="icon" aria-label="Delete" className="text-destructive">
+                      <Icon icon={X} />
                     </Button>
                   </form>
                 </li>
@@ -210,8 +212,8 @@ export default async function PeptidesPage() {
                     <p className="whitespace-pre-wrap">{entry.content}</p>
                   </div>
                   <form action={deleteJournalEntryFormAction.bind(null, entry.id)}>
-                    <Button type="submit" variant="ghost" size="sm" className="text-destructive">
-                      ✕
+                    <Button type="submit" variant="ghost" size="icon" aria-label="Delete" className="text-destructive">
+                      <Icon icon={X} />
                     </Button>
                   </form>
                 </li>
@@ -237,8 +239,8 @@ export default async function PeptidesPage() {
                     </p>
                   </div>
                   <form action={deleteCareProviderFormAction.bind(null, contact.id)}>
-                    <Button type="submit" variant="ghost" size="sm" className="text-destructive">
-                      ✕
+                    <Button type="submit" variant="ghost" size="icon" aria-label="Delete" className="text-destructive">
+                      <Icon icon={X} />
                     </Button>
                   </form>
                 </li>

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { getFoodItems } from "@/lib/nutrition/queries";
 import {
   deleteFoodItemFormAction,
@@ -72,7 +74,7 @@ export default async function FoodsPage() {
                       <Button
                         type="submit"
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         aria-label={
                           food.isFavorite ? "Remove from favorites" : "Add to favorites"
                         }
@@ -80,7 +82,10 @@ export default async function FoodsPage() {
                           food.isFavorite ? "text-amber-500" : "text-muted-foreground"
                         }
                       >
-                        {food.isFavorite ? "★" : "☆"}
+                        <Icon
+                          icon={Star}
+                          className={food.isFavorite ? "fill-current" : ""}
+                        />
                       </Button>
                     </form>
                     <form action={deleteFoodItemFormAction.bind(null, food.id)}>

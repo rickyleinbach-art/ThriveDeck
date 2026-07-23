@@ -1,25 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ThemeToggle } from "@/components/theme-toggle";
-
-const NAV = [
-  "Dashboard",
-  "Nutrition",
-  "Exercise",
-  "Weight",
-  "Peptides",
-  "Habits",
-  "Health",
-  "Analytics",
-  "Progress",
-  "Community",
-  "AI Coach",
-  "Recipes",
-  "Challenges",
-  "Profile",
-  "Settings",
-];
+import { BottomNav } from "@/components/bottom-nav";
+import { PullToRefresh } from "@/components/pull-to-refresh";
+import { NAV_ITEMS } from "@/components/nav-items";
 
 export default async function DashboardLayout({
   children,
@@ -39,38 +25,60 @@ export default async function DashboardLayout({
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <aside className="hidden w-60 shrink-0 border-r border-border bg-card p-4 lg:block">
-        <div className="mb-6 px-2 text-lg font-semibold tracking-tight">
-          ThriveDeck
+        <div className="mb-6 flex items-center gap-2 px-2">
+          <Image
+            src="/brand/thrivedeck-mark-only-transparent.png"
+            alt=""
+            width={620}
+            height={620}
+            className="h-7 w-7"
+          />
+          <span className="text-lg font-semibold tracking-tight">
+            ThriveDeck
+          </span>
         </div>
         <nav className="space-y-1">
-          {NAV.map((item) => {
-            const href =
-              item === "Dashboard"
-                ? "/dashboard"
-                : `/${item.toLowerCase().replace(/\s+/g, "-")}`;
-            return (
-              <Link
-                key={item}
-                href={href}
-                className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
-              >
-                {item}
-              </Link>
-            );
-          })}
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
       </aside>
 
       {/* Main */}
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border bg-card/60 px-6 py-3 backdrop-blur">
-          <div className="text-sm text-muted-foreground">
+        <header className="flex items-center justify-between border-b border-border bg-card/60 px-4 py-3 backdrop-blur lg:px-6">
+          {/* Mobile shows the brand (nav lives in the bottom bar); desktop shows
+              the signed-in user (brand + nav live in the sidebar). */}
+          <Link href="/dashboard" className="flex items-center gap-2 lg:hidden">
+            <Image
+              src="/brand/thrivedeck-mark-only-transparent.png"
+              alt="ThriveDeck"
+              width={620}
+              height={620}
+              className="h-6 w-6"
+            />
+            <span className="text-base font-semibold tracking-tight">
+              ThriveDeck
+            </span>
+          </Link>
+          <div className="hidden text-sm text-muted-foreground lg:block">
             {user.email}
           </div>
           <ThemeToggle />
         </header>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6 pb-24 lg:pb-6">
+          <PullToRefresh>{children}</PullToRefresh>
+        </main>
       </div>
+
+      {/* Mobile primary navigation */}
+      <BottomNav />
     </div>
   );
 }

@@ -89,7 +89,7 @@ export function PeptideForm({ providers }: { providers: CareProvider[] }) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="doseAmount">Prescribed dose (optional)</Label>
           <Input
@@ -129,7 +129,7 @@ export function PeptideForm({ providers }: { providers: CareProvider[] }) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="startedOn">Start date</Label>
           <Input
@@ -159,7 +159,7 @@ export function PeptideForm({ providers }: { providers: CareProvider[] }) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="providerId">Provider</Label>
           <Select

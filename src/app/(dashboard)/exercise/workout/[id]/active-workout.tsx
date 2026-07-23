@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
 import {
   deleteSet,
   deleteWorkout,
@@ -211,7 +213,7 @@ export function ActiveWorkout({
           <p className="mt-1 text-muted-foreground">Workout in progress</p>
         </div>
         <Link href="/exercise" className="text-sm text-primary hover:underline">
-          ← Exercise
+          <Icon icon={ArrowLeft} size="sm" className="mr-1 inline align-[-0.2em]" />Exercise
         </Link>
       </div>
 

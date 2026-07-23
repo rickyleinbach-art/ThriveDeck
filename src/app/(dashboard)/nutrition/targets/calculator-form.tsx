@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -107,7 +109,7 @@ export function CalculatorForm({ defaults }: { defaults: CalculatorDefaults }) {
   return (
     <div className="space-y-4">
       <form onSubmit={handleCalculate} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="sex">Sex</Label>
             <Select
@@ -137,7 +139,7 @@ export function CalculatorForm({ defaults }: { defaults: CalculatorDefaults }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="heightCm">Height (cm)</Label>
             <Input
@@ -166,7 +168,7 @@ export function CalculatorForm({ defaults }: { defaults: CalculatorDefaults }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="activityLevel">Activity level</Label>
             <Select
@@ -229,7 +231,15 @@ export function CalculatorForm({ defaults }: { defaults: CalculatorDefaults }) {
             {result.bmr.toLocaleString()}).
           </p>
           <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? "Saving…" : saved ? "Saved ✓" : "Save as my daily targets"}
+            {saving ? (
+              "Saving…"
+            ) : saved ? (
+              <span className="inline-flex items-center gap-1">
+                Saved <Icon icon={Check} size="sm" />
+              </span>
+            ) : (
+              "Save as my daily targets"
+            )}
           </Button>
         </div>
       )}

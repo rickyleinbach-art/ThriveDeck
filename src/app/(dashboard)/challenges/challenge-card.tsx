@@ -1,4 +1,5 @@
-import { Users, CheckCircle2, Crown } from "lucide-react";
+import { Users, CheckCircle2, Crown, PartyPopper } from "lucide-react";
+import { Icon } from "@/components/ui/icon";
 import type { ChallengeView } from "@/lib/challenges/types";
 import { ChallengeIcon } from "./challenge-icon";
 import { JoinButton } from "./join-button";
@@ -49,10 +50,15 @@ export function ChallengeCard({ view }: { view: ChallengeView }) {
               {formatValue(progress.value, def.unit)}{" "}
               <span className="text-muted-foreground">/ {def.target.toLocaleString()} {def.unit}</span>
             </span>
-            <span className="text-muted-foreground">
-              {progress.completed
-                ? "Complete 🎉"
-                : `${progress.daysLeft} day${progress.daysLeft === 1 ? "" : "s"} left`}
+            <span className="inline-flex items-center gap-1 text-muted-foreground">
+              {progress.completed ? (
+                <>
+                  Complete
+                  <Icon icon={PartyPopper} size="sm" className="text-achievement" />
+                </>
+              ) : (
+                `${progress.daysLeft} day${progress.daysLeft === 1 ? "" : "s"} left`
+              )}
             </span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-muted">

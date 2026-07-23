@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import {
   getCareProviders,
   getHealthMetrics,
@@ -113,10 +115,11 @@ export default async function HealthPage() {
                     <Button
                       type="submit"
                       variant="ghost"
-                      size="sm"
+                      size="icon"
+                      aria-label="Delete"
                       className="text-destructive"
                     >
-                      ✕
+                      <Icon icon={X} />
                     </Button>
                   </form>
                 </li>
@@ -157,10 +160,11 @@ export default async function HealthPage() {
                     <Button
                       type="submit"
                       variant="ghost"
-                      size="sm"
+                      size="icon"
+                      aria-label="Delete"
                       className="text-destructive"
                     >
-                      ✕
+                      <Icon icon={X} />
                     </Button>
                   </form>
                 </li>
@@ -208,10 +212,11 @@ export default async function HealthPage() {
                       <Button
                         type="submit"
                         variant="ghost"
-                        size="sm"
+                        size="icon"
+                        aria-label="Delete"
                         className="text-destructive"
                       >
-                        ✕
+                        <Icon icon={X} />
                       </Button>
                     </form>
                   </div>
@@ -252,10 +257,11 @@ export default async function HealthPage() {
                     <Button
                       type="submit"
                       variant="ghost"
-                      size="sm"
+                      size="icon"
+                      aria-label="Delete"
                       className="text-destructive"
                     >
-                      ✕
+                      <Icon icon={X} />
                     </Button>
                   </form>
                 </li>

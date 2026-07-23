@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, ArrowUp, ArrowDown } from "lucide-react";
+import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnalyticsChart } from "@/components/charts/analytics-chart";
@@ -196,7 +197,6 @@ interface ActiveMetric {
 function MetricCard({ metric, color }: { metric: ActiveMetric; color: string }) {
   const { def, series, unit, summary } = metric;
   const change = summary.change;
-  const arrow = change === null || change === 0 ? "" : change > 0 ? "↑" : "↓";
 
   return (
     <div className="break-inside-avoid rounded-2xl border border-border bg-card p-5 shadow-card">
@@ -208,7 +208,12 @@ function MetricCard({ metric, color }: { metric: ActiveMetric; color: string }) 
         {change !== null && (
           <div className="text-right text-xs text-muted-foreground">
             <span>
-              {arrow} {fmt(Math.abs(change), unit)}
+              {change > 0 ? (
+                <Icon icon={ArrowUp} size="sm" className="inline align-[-0.2em]" />
+              ) : change < 0 ? (
+                <Icon icon={ArrowDown} size="sm" className="inline align-[-0.2em]" />
+              ) : null}{" "}
+              {fmt(Math.abs(change), unit)}
             </span>
             {summary.average !== null && (
               <p className="mt-0.5">avg {fmt(summary.average, unit)}</p>

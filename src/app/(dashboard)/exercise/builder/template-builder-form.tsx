@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -169,7 +171,7 @@ export function TemplateBuilderForm({
                     disabled={index === 0}
                     aria-label="Move up"
                   >
-                    ↑
+                    <Icon icon={ChevronUp} size="sm" />
                   </Button>
                   <Button
                     type="button"
@@ -179,7 +181,7 @@ export function TemplateBuilderForm({
                     disabled={index === rows.length - 1}
                     aria-label="Move down"
                   >
-                    ↓
+                    <Icon icon={ChevronDown} size="sm" />
                   </Button>
                   <Button
                     type="button"

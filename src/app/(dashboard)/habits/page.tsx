@@ -1,5 +1,7 @@
+import { Flame, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { getHabitLogs, getHabits } from "@/lib/habits/queries";
 import {
   addDays,
@@ -155,8 +157,9 @@ export default async function HabitsPage() {
                   </div>
                   <div className="flex shrink-0 items-center gap-4">
                     <p className="text-xs text-muted-foreground">
-                      <span className="font-medium text-foreground">
-                        🔥 {streaks.current}
+                      <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                        <Icon icon={Flame} size="sm" className="text-achievement" />
+                        {streaks.current}
                       </span>{" "}
                       · best {streaks.longest}
                       {rate !== null ? ` · ${rate}% (30d)` : ""}
@@ -173,10 +176,11 @@ export default async function HabitsPage() {
                         <Button
                           type="submit"
                           variant="ghost"
-                          size="sm"
+                          size="icon"
+                          aria-label="Delete habit"
                           className="text-destructive"
                         >
-                          ✕
+                          <Icon icon={Trash2} />
                         </Button>
                       </form>
                     </div>
