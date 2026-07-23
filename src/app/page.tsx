@@ -439,6 +439,14 @@ export default function Home() {
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:py-28">
             <Reveal>
               <div className="text-center lg:text-left">
+                <Image
+                  src="/brand/thrivedeck-mark-only-transparent.png"
+                  alt="ThriveDeck logo"
+                  width={512}
+                  height={512}
+                  priority
+                  className="mx-auto mb-8 h-28 w-auto drop-shadow-[0_8px_30px_hsl(var(--primary)/0.25)] sm:h-32 lg:h-36 lg:mx-0"
+                />
                 <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Train. Fuel. Recover. <span className="text-primary">Perform.</span>
                 </span>
