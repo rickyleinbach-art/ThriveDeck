@@ -20,17 +20,23 @@ Full product spec lives in `docs/PRD.md` — read the relevant section only, not
 - Use the existing design tokens and shadcn components. Do not invent new UI primitives.
 - Mobile-first. Support dark + light mode via the theme provider.
 
-## Health & safety rules (non-negotiable)
-- The app NEVER recommends or suggests peptide/medication dosing. It only records what
-  the user enters and encourages them to consult a licensed healthcare provider.
-- Education vs. recommendation: `/peptides/reference` may CITE a dose that a regulatory
-  label, clinical trial, or preclinical study already published, but only alongside the
-  tier that says where the figure came from, and never as a suggestion for the reader.
-  It is never personalised, never derived from the user's own logged peptides, and never
-  presented as a protocol. Do not strip that library — and do not let anything in it
-  start advising. See `src/lib/peptides/reference.ts`.
-- The AI Coach NEVER prescribes medication or gives dosing instructions. Medical questions
-  get educational info plus "consult your provider."
+## Health & safety rules
+
+Single-user deck. The owner is the only account, and the previous
+"never advises" posture has been lifted deliberately — the app may state doses,
+mixing protocols, and medical information directly, and the AI Coach answers
+dosing and medical questions instead of deferring them.
+
+What still holds, for accuracy rather than liability:
+- Every dose figure must carry its provenance tier (`approved` / `trial` /
+  `research`). An approved-label dose and an animal-study dose are different
+  kinds of number, and that distinction is the most useful thing on the page.
+  See `src/lib/peptides/reference.ts`.
+- Do not invent dose figures. Numbers come from a regulatory label, a trial
+  protocol, or published literature, recorded in the reference library. If a
+  compound has no sourced figure, say so rather than estimating one.
+- The coach answers from the library (`src/lib/coach/peptide-answers.ts`), so
+  every number it can emit is one already written down and attributed.
 - Never log or console.print health metric values, lab results, or medication data.
 - Treat all health data as sensitive. See docs/PRD.md § Security.
 

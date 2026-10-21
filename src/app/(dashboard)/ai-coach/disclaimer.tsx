@@ -1,26 +1,24 @@
-import { ShieldAlert } from "lucide-react";
+import { BookMarked } from "lucide-react";
 
-// SAFETY CRITICAL — the coach is a lifestyle assistant, not a medical
-// professional. This banner stays at the top of the AI Coach screen.
-// The coach never prescribes or suggests dosing (CLAUDE.md § Health & safety).
+// Describes what the coach actually does. It answers compound questions out of
+// the reference library, so the only thing worth saying up front is where its
+// numbers come from — not a warning that it won't answer, which it now does.
 export function CoachDisclaimer() {
   return (
     <div
       role="note"
-      aria-label="AI Coach disclaimer"
-      className="flex items-start gap-3 rounded-2xl border border-amber-500/50 bg-amber-500/10 p-4"
+      aria-label="How the coach answers"
+      className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3"
     >
-      <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
-      <div className="text-sm">
-        <p className="font-semibold text-amber-700 dark:text-amber-300">
-          Your AI Coach gives lifestyle guidance, not medical advice.
-        </p>
-        <p className="mt-1 text-amber-700/90 dark:text-amber-300/90">
-          It reviews what you log and helps with nutrition, training, and habits. It never
-          prescribes medication, recommends peptide or medication dosing, or interprets lab
-          results. For anything medical, consult a licensed healthcare provider.
-        </p>
-      </div>
+      <BookMarked
+        aria-hidden
+        className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+      />
+      <p className="text-sm text-muted-foreground">
+        The coach is deterministic — it reads what you&apos;ve logged and quotes
+        the peptide reference library, so every figure it gives is one that is
+        written down and tagged with its source. It never estimates a number.
+      </p>
     </div>
   );
 }

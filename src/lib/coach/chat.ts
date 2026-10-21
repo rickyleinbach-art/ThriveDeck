@@ -1,9 +1,6 @@
 import type { CoachContext, CoachReply } from "@/lib/coach/types";
-import {
-  classifyMedical,
-  medicalGuardrailResponse,
-  CONSULT_PROVIDER_NOTE,
-} from "@/lib/coach/guardrails";
+import { CONSULT_PROVIDER_NOTE } from "@/lib/coach/guardrails";
+import { peptideReply } from "@/lib/coach/peptide-answers";
 import { matchEducationTopic } from "@/lib/coach/education";
 import {
   mealAnswer,
@@ -14,10 +11,12 @@ import {
 } from "@/lib/coach/insights";
 
 // Deterministic coach chat. Given a user message and their context, classify
-// intent and produce a reply. Order is deliberate and SAFETY CRITICAL:
-// the medical/dosing guardrail is checked FIRST, before any coaching path,
-// so a question like "how much semaglutide should I take" can never reach a
-// weight- or nutrition-answer builder. See guardrails.ts.
+// intent and produce a reply.
+//
+// Order still matters, for accuracy rather than safety: a compound question is
+// answered from the reference library FIRST, so "how much semaglutide" returns
+// semaglutide's documented titration instead of falling through to the
+// weight-answer builder, which would cheerfully reply about weight trends.
 
 type Matcher = { intent: CoachReply["intent"]; patterns: RegExp[] };
 
@@ -65,12 +64,11 @@ const MATCHERS: Matcher[] = [
 ];
 
 export function coachReply(message: string, ctx: CoachContext): CoachReply {
-  // 1) SAFETY GATE — medical / dosing always wins.
-  const medical = classifyMedical(message);
-  if (medical) {
-    const g = medicalGuardrailResponse(medical);
-    return { intent: "safety", text: g.text, bullets: g.bullets, safety: true };
-  }
+  // 1) Compound questions — dosing, mixing, storage, side effects — answered
+  // from the reference library. Checked first because these messages contain
+  // words ("how much", "weekly") that the generic matchers would misread.
+  const peptide = peptideReply(message);
+  if (peptide) return peptide;
 
   // 2) Education topics — general, non-medical knowledge. Checked before the
   // broader intent matchers so a specific "why does protein matter" question
