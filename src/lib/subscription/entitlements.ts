@@ -40,8 +40,14 @@ export function isBillingEnforced(): boolean {
 }
 
 // Enforcement-aware check — the one gates should call.
-export function entitled(plan: Plan, feature: Feature): boolean {
-  return !isBillingEnforced() || hasFeature(plan, feature);
+//
+// ThriveDeck is a personal deck, not a product with paying users, so every
+// feature is unlocked for everyone and this always answers true. The plan
+// tables above are kept because the Stripe/subscription plumbing still reads
+// them; restoring real gating means returning the commented line instead.
+export function entitled(_plan: Plan, _feature: Feature): boolean {
+  // return !isBillingEnforced() || hasFeature(plan, feature);
+  return true;
 }
 
 // Free history window (days). Pro is unlimited.

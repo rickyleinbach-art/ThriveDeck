@@ -31,28 +31,6 @@ export default async function SettingsPage() {
         description="Membership, appearance, units, and notification preferences."
       />
 
-      <Card title="Membership">
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-sm font-medium">
-              {isPro ? "ThriveDeck Pro" : "Starter (Free)"}
-            </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {isPro
-                ? subscription.status === "trialing"
-                  ? "Free trial active"
-                  : "All Pro features unlocked"
-                : "Core tracking, free forever"}
-            </p>
-          </div>
-          <Link
-            href="/upgrade"
-            className="shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-          >
-            {isPro ? "Manage" : "Upgrade to Pro"}
-          </Link>
-        </div>
-      </Card>
 
       <SettingsClient
         email={user.email ?? profile?.email ?? ""}

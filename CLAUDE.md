@@ -23,6 +23,12 @@ Full product spec lives in `docs/PRD.md` — read the relevant section only, not
 ## Health & safety rules (non-negotiable)
 - The app NEVER recommends or suggests peptide/medication dosing. It only records what
   the user enters and encourages them to consult a licensed healthcare provider.
+- Education vs. recommendation: `/peptides/reference` may CITE a dose that a regulatory
+  label, clinical trial, or preclinical study already published, but only alongside the
+  tier that says where the figure came from, and never as a suggestion for the reader.
+  It is never personalised, never derived from the user's own logged peptides, and never
+  presented as a protocol. Do not strip that library — and do not let anything in it
+  start advising. See `src/lib/peptides/reference.ts`.
 - The AI Coach NEVER prescribes medication or gives dosing instructions. Medical questions
   get educational info plus "consult your provider."
 - Never log or console.print health metric values, lab results, or medication data.

@@ -69,9 +69,14 @@ export default async function PeptidesPage() {
             how you&apos;re feeling.
           </p>
         </div>
-        <Link href="/peptides/history" className="text-sm text-primary hover:underline">
-          Full history
-        </Link>
+        <div className="flex shrink-0 gap-4">
+          <Link href="/peptides/reference" className="text-sm text-primary hover:underline">
+            Reference library
+          </Link>
+          <Link href="/peptides/history" className="text-sm text-primary hover:underline">
+            Full history
+          </Link>
+        </div>
       </div>
 
       <MedicalDisclaimer />
