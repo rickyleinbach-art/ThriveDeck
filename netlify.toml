@@ -5,6 +5,11 @@
   # Next.js 15 requires Node 18.18+. Pin to a current LTS for reproducible CI builds.
   NODE_VERSION = "20"
 
-# The Next.js runtime is auto-installed by Netlify and manages the publish
-# directory and serverless/edge functions. Building on Netlify's Linux CI also
-# ensures the correct-platform `sharp` binary is bundled.
+# The Next.js runtime manages the publish directory and the serverless/edge
+# functions. Declare it explicitly: the CLI auto-installs it into .netlify/plugins
+# for local `netlify deploy --build`, but CI builds get no such auto-install, and
+# without it `next build` output ships as plain static files with no server
+# handler. Building on Netlify's Linux CI also ensures the correct-platform
+# `sharp` binary is bundled.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
