@@ -11,6 +11,7 @@ import { DosingTable } from "./dosing-table";
 import { MixingCalculator } from "./mixing-calculator";
 import { BlendCalculator } from "./blend-calculator";
 import { ComparePeptides } from "./compare-peptides";
+import { ReconGuide } from "./recon-guide";
 import { StacksList, StackWarnings } from "./stacks-section";
 import {
   Callout,
@@ -30,6 +31,7 @@ export const metadata: Metadata = {
 const JUMP_LINKS = [
   { href: "#library", label: "Compound library" },
   { href: "#compare", label: "Compare" },
+  { href: "#guide", label: "Reconstitution guide" },
   { href: "#mixing", label: "Mixing calculator" },
   { href: "#howto", label: "How to reconstitute" },
   { href: "#storage", label: "Storage" },
@@ -147,6 +149,14 @@ export default function PeptideReferencePage() {
         note="Up to three compounds across one table — evidence tier, dosing source, half-life and the worth-knowing line, without scrolling between entries."
       >
         <ComparePeptides />
+      </RefSection>
+
+      <RefSection
+        id="guide"
+        title="Reconstitution guide"
+        note="Start here if you have a vial and are not sure what to do with it. Pick the peptide and the rest is seeded from its entry — the solvent, the sizes it is sold in, the documented dose — so the only thing you decide is which step of the schedule you are on."
+      >
+        <ReconGuide />
       </RefSection>
 
       <RefSection
