@@ -288,3 +288,153 @@ export function reconstituteBlend(input: BlendInput): BlendResult {
     warning,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Solving for solvent volume
+//
+// The reverse of reconstitute(). There you know how much water went in and want
+// the syringe reading; here you know the dose you want and need the volume that
+// makes it land somewhere readable.
+//
+// Infinitely many volumes "work" — the arithmetic is linear — so the job is
+// picking good ones. A volume is good when it is easy to measure (whole or half
+// millilitres beat 1.37 mL), when the dose lands on or near a whole unit mark,
+// and when that mark sits in the middle of the barrel rather than crowded at
+// either end, where a small misread is proportionally large.
+
+export interface SolventSuggestion {
+  solventMl: number;
+  /** Where the dose lands with this volume. */
+  syringeUnits: number;
+  concentration: number;
+  /** Amount in one syringe unit. */
+  perUnit: number;
+  /** Lands exactly on a mark. */
+  exact: boolean;
+}
+
+export interface SolventSolveResult {
+  suggestions: SolventSuggestion[];
+  /** Why nothing could be suggested, when suggestions is empty. */
+  problem: string | null;
+}
+
+// Volumes worth proposing: quarter-millilitre steps, which is as fine as a
+// reconstitution syringe can be read with any confidence.
+function candidateVolumes(maxMl: number): number[] {
+  const out: number[] = [];
+  for (let ml = 0.5; ml <= maxMl + 1e-9; ml += 0.25) {
+    out.push(Math.round(ml * 100) / 100);
+  }
+  return out;
+}
+
+// Lower is better.
+//
+// Landing on a mark dominates, because the two actions are not performed
+// equally often: the water is measured once, at mixing time, with a
+// finely-graduated reconstitution syringe, whereas the dose is drawn on an
+// insulin barrel every single time. An odd fill that buys a clean repeated
+// draw is a good trade; the reverse is not.
+function scoreVolume(ml: number, units: number, maxUnits: number): number {
+  // Distance from a whole mark, 0–0.5.
+  const offMark = Math.abs(units - Math.round(units));
+
+  // Distance from the middle of the usable band. Crowding either end costs.
+  const ideal = maxUnits * 0.45;
+  const offCentre = Math.abs(units - ideal) / maxUnits;
+
+  // Measuring penalty: whole mL is easiest, then halves, then quarters. Small,
+  // deliberately — it should only break ties between equally clean draws.
+  const isWhole = Math.abs(ml - Math.round(ml)) < 1e-9;
+  const isHalf = Math.abs(ml * 2 - Math.round(ml * 2)) < 1e-9;
+  const awkward = isWhole ? 0 : isHalf ? 0.04 : 0.1;
+
+  return offMark * 2.5 + offCentre * 0.5 + awkward;
+}
+
+export function suggestSolventVolumes(input: {
+  vialStrength: number;
+  vialUnit: VialUnit;
+  targetAmount: number;
+  targetUnit: TargetUnit;
+  vialSizeMl: number;
+  syringeSizeMl?: number;
+  limit?: number;
+}): SolventSolveResult {
+  const {
+    vialStrength,
+    vialUnit,
+    targetAmount,
+    targetUnit,
+    vialSizeMl,
+    limit = 3,
+  } = input;
+  const maxUnits = Math.round((input.syringeSizeMl ?? 1) * UNITS_PER_ML);
+
+  if (!(vialStrength > 0) || !(targetAmount > 0) || !(vialSizeMl > 0)) {
+    return { suggestions: [], problem: null };
+  }
+
+  // Same unit reconciliation as reconstitute(): IU measures activity, not mass.
+  let targetInVialUnit = Number.NaN;
+  if (vialUnit === "iu") {
+    if (targetUnit === "iu") targetInVialUnit = targetAmount;
+  } else if (targetUnit === "mg") {
+    targetInVialUnit = targetAmount;
+  } else if (targetUnit === "mcg") {
+    targetInVialUnit = targetAmount / 1000;
+  }
+
+  if (!(targetInVialUnit > 0)) {
+    return {
+      suggestions: [],
+      problem:
+        vialUnit === "iu"
+          ? "This vial is measured in IU, so set the dose in IU as well."
+          : "This vial is measured in mg, so set the dose in mg or mcg.",
+    };
+  }
+
+  if (targetInVialUnit > vialStrength) {
+    return {
+      suggestions: [],
+      problem: `One dose of ${formatNumber(
+        targetAmount
+      )} ${TARGET_UNIT_LABELS[targetUnit]} is more than the whole vial holds.`,
+    };
+  }
+
+  const scored = candidateVolumes(vialSizeMl)
+    .map((ml) => {
+      const concentration = vialStrength / ml;
+      const perUnitRaw = concentration / UNITS_PER_ML;
+      const units = targetInVialUnit / perUnitRaw;
+      return {
+        solventMl: ml,
+        syringeUnits: units,
+        concentration,
+        perUnit: vialUnit === "iu" ? perUnitRaw : perUnitRaw * 1000,
+        exact: Math.abs(units - Math.round(units)) < 0.05,
+        score: scoreVolume(ml, units, maxUnits),
+      };
+    })
+    // Too small to read, or past the end of the barrel.
+    .filter((c) => c.syringeUnits >= 2 && c.syringeUnits <= maxUnits)
+    .sort((a, b) => a.score - b.score);
+
+  if (scored.length === 0) {
+    return {
+      suggestions: [],
+      problem: `No volume that fits a ${formatNumber(
+        vialSizeMl,
+        0
+      )} mL vial puts this dose on the barrel. A different vial or syringe size would.`,
+    };
+  }
+
+  return {
+    suggestions: scored.slice(0, limit).map(({ score: _score, ...rest }) => rest),
+    problem: null,
+  };
+}

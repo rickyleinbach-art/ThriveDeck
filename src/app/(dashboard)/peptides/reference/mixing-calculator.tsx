@@ -5,7 +5,9 @@ import { Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import {
+  suggestSolventVolumes,
   COMMON_VIAL_STRENGTHS,
+  TARGET_UNIT_LABELS,
   SYRINGE_SIZES_ML,
   VIAL_SIZES_ML,
   formatNumber,
@@ -68,6 +70,84 @@ function Readout({
   );
 }
 
+// Renders the solved volumes. The first is the recommendation; the rest are
+// there because "2 mL" versus "2.5 mL" is often a matter of what is in the
+// drawer, and the arithmetic does not care which you pick.
+function SolventSuggestions({
+  solve,
+  targetAmount,
+  targetUnit,
+}: {
+  solve: ReturnType<typeof suggestSolventVolumes>;
+  targetAmount: string;
+  targetUnit: TargetUnit;
+}) {
+  if (solve.problem) {
+    return (
+      <p className="mt-5 flex items-start gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
+        <Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
+        <span>{solve.problem}</span>
+      </p>
+    );
+  }
+  if (solve.suggestions.length === 0) {
+    return (
+      <p className="mt-5 text-sm text-muted-foreground">
+        Fill in the vial strength and the dose you want.
+      </p>
+    );
+  }
+
+  const [best, ...rest] = solve.suggestions;
+
+  return (
+    <div className="mt-5 space-y-3">
+      <div className="rounded-xl border border-primary/40 bg-primary/10 p-4">
+        <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          Add this much bacteriostatic water
+        </div>
+        <div className="mt-1 text-3xl font-semibold tabular-nums tracking-tight text-primary">
+          {formatNumber(best.solventMl, 2)}
+          <span className="ml-1.5 text-base font-normal text-muted-foreground">
+            mL
+          </span>
+        </div>
+        <p className="mt-2 text-sm">
+          Your {targetAmount} {TARGET_UNIT_LABELS[targetUnit]} dose then sits at{" "}
+          <span className="font-semibold tabular-nums text-primary">
+            {formatNumber(best.syringeUnits, best.exact ? 0 : 1)} units
+          </span>{" "}
+          — {formatNumber(best.concentration)} mg/mL, {formatNumber(best.perUnit, 1)}{" "}
+          per unit.
+        </p>
+      </div>
+
+      {rest.length > 0 && (
+        <div>
+          <div className="mb-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+            Also works
+          </div>
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {rest.map((s) => (
+              <li
+                key={s.solventMl}
+                className="flex items-baseline justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm"
+              >
+                <span className="font-medium tabular-nums">
+                  {formatNumber(s.solventMl, 2)} mL
+                </span>
+                <span className="tabular-nums text-muted-foreground">
+                  {formatNumber(s.syringeUnits, s.exact ? 0 : 1)} units
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Converts what is printed on a vial into where a given amount lands on a
 // U-100 syringe. It is a unit converter for figures the user types in — it
 // never proposes an amount, and it is not connected to their logged peptides.
@@ -79,6 +159,9 @@ export function MixingCalculator() {
   const [targetUnit, setTargetUnit] = useState<TargetUnit>("mcg");
   const [vialSizeMl, setVialSizeMl] = useState("3");
   const [syringeSizeMl, setSyringeSizeMl] = useState("1");
+  // "units" solves forward (water in, reading out); "water" solves backward,
+  // which is the question you actually have standing over an unmixed vial.
+  const [mode, setMode] = useState<"units" | "water">("units");
 
   const result = useMemo(
     () =>
@@ -102,6 +185,19 @@ export function MixingCalculator() {
     ]
   );
 
+  const solve = useMemo(
+    () =>
+      suggestSolventVolumes({
+        vialStrength: parseFloat(vialStrength),
+        vialUnit,
+        targetAmount: parseFloat(targetAmount),
+        targetUnit,
+        vialSizeMl: parseFloat(vialSizeMl),
+        syringeSizeMl: parseFloat(syringeSizeMl),
+      }),
+    [vialStrength, vialUnit, targetAmount, targetUnit, vialSizeMl, syringeSizeMl]
+  );
+
   const units = result.syringeUnits ?? 0;
   const maxUnits = result.syringeMaxUnits;
   const clamped = Math.max(0, Math.min(maxUnits, units));
@@ -114,11 +210,35 @@ export function MixingCalculator() {
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-base font-semibold">Vial to syringe</h3>
-        <p className="text-xs text-muted-foreground">
-          Enter what is printed on your own vial
-        </p>
+        <div
+          role="radiogroup"
+          aria-label="What to solve for"
+          className="flex items-center gap-1 rounded-lg border border-border p-1"
+        >
+          {(
+            [
+              ["water", "How much water?"],
+              ["units", "Where do I draw?"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={mode === value}
+              onClick={() => setMode(value)}
+              className={
+                mode === value
+                  ? "rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground"
+                  : "rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -172,7 +292,7 @@ export function MixingCalculator() {
           )}
         </div>
 
-        <div>
+        <div className={mode === "water" ? "hidden" : undefined}>
           <label
             htmlFor="calc-solvent"
             className="text-xs font-medium text-muted-foreground"
@@ -199,7 +319,7 @@ export function MixingCalculator() {
             htmlFor="calc-target"
             className="text-xs font-medium text-muted-foreground"
           >
-            Target amount
+            {mode === "water" ? "Dose you want" : "Target amount"}
           </label>
           <div className="mt-1.5 flex gap-2">
             <Input
@@ -274,6 +394,14 @@ export function MixingCalculator() {
         </div>
       </div>
 
+      {mode === "water" ? (
+        <SolventSuggestions
+          solve={solve}
+          targetAmount={targetAmount}
+          targetUnit={targetUnit}
+        />
+      ) : (
+      <>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Readout
           label="Concentration"
@@ -402,7 +530,10 @@ export function MixingCalculator() {
         </svg>
       </div>
 
-      {notice && (
+      </>
+      )}
+
+      {mode === "units" && notice && (
         <p className="mt-3 flex items-start gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
           <Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{notice}</span>
