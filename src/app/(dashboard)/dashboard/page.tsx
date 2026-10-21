@@ -1,5 +1,22 @@
 import Link from "next/link";
-import { ArrowRight, Check } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Flame,
+  Beef,
+  Droplets,
+  Dumbbell,
+  Footprints,
+  Scale,
+  Percent,
+  ListChecks,
+  Moon,
+  Syringe,
+  Trophy,
+  TrendingDown,
+  TrendingUp,
+  type LucideIcon,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Sparkline } from "@/components/ui/sparkline";
@@ -31,27 +48,51 @@ function round(value: number) {
 function StatCard({
   title,
   href,
+  icon,
+  action,
   children,
 }: {
   title: string;
   href: string;
+  icon: LucideIcon;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <Link href={href}>
-      <Card title={title} className="h-full transition hover:border-primary/40">
+    // `group` lets the empty-state prompt inside react to hovering the card.
+    <Link href={href} className="group block h-full">
+      <Card title={title} icon={icon} action={action} interactive>
         {children}
       </Card>
     </Link>
   );
 }
 
+// Pushed to the bottom of the card (mt-auto) so a grid row of mixed
+// populated/empty cards still lines its prompts up.
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-16 items-center gap-1 text-sm text-muted-foreground/70">
-      {children}
-      <Icon icon={ArrowRight} size="sm" />
+    <div className="mt-auto flex items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2.5 text-sm text-muted-foreground transition-colors group-hover:border-primary/50 group-hover:text-foreground">
+      <span className="truncate">{children}</span>
+      <Icon icon={ArrowRight} size="sm" className="ml-auto shrink-0" />
     </div>
+  );
+}
+
+// Change across the loaded window, shown in the card header. Direction is
+// coloured but never judged: losing weight is not universally "good".
+function Delta({ entries }: { entries: { value: number; unit: string }[] }) {
+  if (entries.length < 2) return null;
+  const diff = entries[0].value - entries[entries.length - 1].value;
+  if (Math.abs(diff) < 0.05) return null;
+  const up = diff > 0;
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-medium tabular-nums text-muted-foreground">
+      <Icon icon={up ? TrendingUp : TrendingDown} size="sm" />
+      {up ? "+" : ""}
+      {diff.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+      {entries[0].unit}
+    </span>
   );
 }
 
@@ -181,8 +222,8 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* Nutrition */}
-        <StatCard title="Today's calories" href="/nutrition">
-          <p className="text-2xl font-semibold">
+        <StatCard icon={Flame} title="Today's calories" href="/nutrition">
+          <p className="text-2xl font-semibold tabular-nums tracking-tight">
             {round(totals.calories)}
             <span className="ml-1 text-sm font-normal text-muted-foreground">
               {nutritionTarget ? `/ ${round(nutritionTarget.calories)} kcal` : "kcal"}
@@ -193,10 +234,10 @@ export default async function DashboardPage() {
           )}
         </StatCard>
 
-        <StatCard title="Protein remaining" href="/nutrition">
+        <StatCard icon={Beef} title="Protein remaining" href="/nutrition">
           {proteinRemaining !== null ? (
             <>
-              <p className="text-2xl font-semibold">
+              <p className="text-2xl font-semibold tabular-nums tracking-tight">
                 {round(proteinRemaining)}
                 <span className="ml-1 text-sm font-normal text-muted-foreground">g left</span>
               </p>
@@ -204,7 +245,7 @@ export default async function DashboardPage() {
             </>
           ) : (
             <>
-              <p className="text-2xl font-semibold">
+              <p className="text-2xl font-semibold tabular-nums tracking-tight">
                 {round(totals.proteinG)}
                 <span className="ml-1 text-sm font-normal text-muted-foreground">g today</span>
               </p>
@@ -216,10 +257,10 @@ export default async function DashboardPage() {
         </StatCard>
 
         {/* Habits */}
-        <StatCard title="Water remaining" href="/habits">
+        <StatCard icon={Droplets} title="Water remaining" href="/habits">
           {water && water.habit.targetValue ? (
             water.value >= water.habit.targetValue ? (
-              <p className="text-2xl font-semibold">
+              <p className="text-2xl font-semibold tabular-nums tracking-tight">
                 Goal hit
                 <span className="ml-1 text-sm font-normal text-muted-foreground">
                   {round(water.value)} {water.habit.unit ?? "oz"}
@@ -227,7 +268,7 @@ export default async function DashboardPage() {
               </p>
             ) : (
               <>
-                <p className="text-2xl font-semibold">
+                <p className="text-2xl font-semibold tabular-nums tracking-tight">
                   {round(water.habit.targetValue - water.value)}
                   <span className="ml-1 text-sm font-normal text-muted-foreground">
                     {water.habit.unit ?? "oz"} left
@@ -242,7 +283,7 @@ export default async function DashboardPage() {
         </StatCard>
 
         {/* Exercise */}
-        <StatCard title="Today's workout" href="/exercise">
+        <StatCard icon={Dumbbell} title="Today's workout" href="/exercise">
           {activeWorkout ? (
             <div>
               <p className="truncate text-lg font-semibold">{activeWorkout.name}</p>
@@ -263,10 +304,10 @@ export default async function DashboardPage() {
         </StatCard>
 
         {/* Habits */}
-        <StatCard title="Steps" href="/habits">
+        <StatCard icon={Footprints} title="Steps" href="/habits">
           {steps ? (
             <>
-              <p className="text-2xl font-semibold">
+              <p className="text-2xl font-semibold tabular-nums tracking-tight">
                 {round(steps.value)}
                 <span className="ml-1 text-sm font-normal text-muted-foreground">
                   {steps.habit.targetValue ? `/ ${round(steps.habit.targetValue)}` : "steps"}
@@ -282,10 +323,15 @@ export default async function DashboardPage() {
         </StatCard>
 
         {/* Weight (already wired) */}
-        <StatCard title="Weight trend" href="/weight/trend">
+        <StatCard
+          icon={Scale}
+          title="Weight trend"
+          href="/weight/trend"
+          action={<Delta entries={weightEntries} />}
+        >
           {weightEntries.length > 0 ? (
             <div>
-              <p className="text-lg font-semibold">
+              <p className="text-lg font-semibold tabular-nums tracking-tight">
                 {formatValue(weightEntries[0].value, weightEntries[0].unit)}
               </p>
               <Sparkline data={weightSpark} />
@@ -295,10 +341,15 @@ export default async function DashboardPage() {
           )}
         </StatCard>
 
-        <StatCard title="Body fat trend" href="/weight/trend">
+        <StatCard
+          icon={Percent}
+          title="Body fat trend"
+          href="/weight/trend"
+          action={<Delta entries={bodyFatEntries} />}
+        >
           {bodyFatEntries.length > 0 ? (
             <div>
-              <p className="text-lg font-semibold">
+              <p className="text-lg font-semibold tabular-nums tracking-tight">
                 {formatValue(bodyFatEntries[0].value, bodyFatEntries[0].unit)}
               </p>
               <Sparkline data={bodyFatSpark} />
@@ -309,9 +360,9 @@ export default async function DashboardPage() {
         </StatCard>
 
         {/* Habits */}
-        <StatCard title="Today's habits" href="/habits">
+        <StatCard icon={ListChecks} title="Today's habits" href="/habits">
           {todaysHabits.length > 0 ? (
-            <p className="text-2xl font-semibold">
+            <p className="text-2xl font-semibold tabular-nums tracking-tight">
               {habitsDone}
               <span className="text-base font-normal text-muted-foreground">
                 {" "}
@@ -323,9 +374,9 @@ export default async function DashboardPage() {
           )}
         </StatCard>
 
-        <StatCard title="Sleep" href="/habits">
+        <StatCard icon={Moon} title="Sleep" href="/habits">
           {sleep && sleep.value > 0 ? (
-            <p className="text-2xl font-semibold">
+            <p className="text-2xl font-semibold tabular-nums tracking-tight">
               {formatValue(sleep.value, sleep.habit.unit ?? "hours")}
             </p>
           ) : (
@@ -335,7 +386,7 @@ export default async function DashboardPage() {
 
         {/* Peptides — hidden for users who don't track peptides */}
         {tracksPeptides && (
-          <StatCard title="Next peptide reminder" href="/peptides">
+          <StatCard icon={Syringe} title="Next peptide reminder" href="/peptides">
             {nextReminder ? (
               <div>
                 <p className="truncate text-sm font-medium">{nextReminder.title}</p>
@@ -353,8 +404,8 @@ export default async function DashboardPage() {
         )}
 
         {/* Gamification */}
-        <StatCard title="Weekly streak" href="/challenges">
-          <p className="text-2xl font-semibold">
+        <StatCard icon={Trophy} title="Weekly streak" href="/challenges">
+          <p className="text-2xl font-semibold tabular-nums tracking-tight">
             <span className={streak > 0 ? "text-achievement" : undefined}>{streak}</span>
             <span className="text-base font-normal text-muted-foreground"> day{streak === 1 ? "" : "s"}</span>
           </p>

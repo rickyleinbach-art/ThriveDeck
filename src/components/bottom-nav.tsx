@@ -13,7 +13,9 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import type { NavItem } from "@/components/nav-items";
+import { isNavItemActive, type NavItem } from "@/components/nav-items";
+import { Icon } from "@/components/ui/icon";
+import { NAV_ICONS } from "@/components/nav-icons";
 
 // Primary bottom-nav tabs (mobile only). Capped at 4 core + a "More" tab that
 // reveals the full module list. Desktop keeps the sidebar (this is lg:hidden).
@@ -49,8 +51,7 @@ export function BottomNav({ navItems }: { navItems: NavItem[] }) {
     };
   }, [moreOpen]);
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+  const isActive = (href: string) => isNavItemActive(pathname, href);
 
   // "More" is highlighted whenever the current route isn't one of the primary tabs.
   const moreActive = !TABS.some((t) => isActive(t.href));
@@ -139,12 +140,16 @@ export function BottomNav({ navItems }: { navItems: NavItem[] }) {
                       key={item.href}
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`rounded-lg px-3 py-3 text-sm font-medium transition ${
+                      className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition ${
                         active
                           ? "bg-accent text-accent-foreground"
                           : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
+                      <Icon
+                        icon={NAV_ICONS[item.icon]}
+                        className={active ? "text-primary" : undefined}
+                      />
                       {item.label}
                     </Link>
                   );

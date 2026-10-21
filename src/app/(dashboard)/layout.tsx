@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BottomNav } from "@/components/bottom-nav";
+import { SidebarNav } from "@/components/sidebar-nav";
+import { UserMenu } from "@/components/user-menu";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { visibleNavItems } from "@/components/nav-items";
 import { getProfile } from "@/lib/profile/queries";
@@ -37,8 +39,13 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <aside className="hidden w-60 shrink-0 border-r border-border bg-card p-4 lg:block">
-        <div className="mb-6 flex items-center gap-2 px-2">
+      {/* Sticky so the grouped module list stays reachable on long pages, and
+          independently scrollable because it outgrows short viewports. */}
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 overflow-y-auto border-r border-border bg-card p-4 lg:block">
+        <Link
+          href="/dashboard"
+          className="mb-6 flex items-center gap-2 rounded-lg px-2 py-1 transition hover:opacity-80"
+        >
           <Image
             src="/brand/thrivedeck-mark-only-transparent.png"
             alt=""
@@ -49,18 +56,8 @@ export default async function DashboardLayout({
           <span className="text-lg font-semibold tracking-tight">
             ThriveDeck
           </span>
-        </div>
-        <nav className="space-y-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        </Link>
+        <SidebarNav navItems={navItems} />
       </aside>
 
       {/* Main */}
@@ -80,13 +77,23 @@ export default async function DashboardLayout({
               ThriveDeck
             </span>
           </Link>
-          <div className="hidden text-sm text-muted-foreground lg:block">
-            {user.email}
+          {/* Spacer on desktop: the brand link above is mobile-only, so without
+              this the controls would sit left instead of trailing. */}
+          <div className="hidden lg:block" />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <UserMenu
+              email={user.email ?? ""}
+              fullName={profile?.fullName ?? null}
+            />
           </div>
-          <ThemeToggle />
         </header>
-        <main className="flex-1 p-6 pb-24 lg:pb-6">
-          <PullToRefresh>{children}</PullToRefresh>
+        {/* Capped and centred: full-bleed content stretches line lengths and
+            card grids past the point of being readable on wide displays. */}
+        <main className="flex-1 px-4 pb-24 pt-6 sm:px-6 lg:pb-10">
+          <div className="mx-auto w-full max-w-6xl">
+            <PullToRefresh>{children}</PullToRefresh>
+          </div>
         </main>
       </div>
 
