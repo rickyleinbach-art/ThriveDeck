@@ -10,6 +10,8 @@ import { CompoundLibrary } from "./compound-library";
 import { DosingTable } from "./dosing-table";
 import { MixingCalculator } from "./mixing-calculator";
 import { BlendCalculator } from "./blend-calculator";
+import { ComparePeptides } from "./compare-peptides";
+import { StacksList, StackWarnings } from "./stacks-section";
 import {
   Callout,
   DataTable,
@@ -27,10 +29,12 @@ export const metadata: Metadata = {
 
 const JUMP_LINKS = [
   { href: "#library", label: "Compound library" },
+  { href: "#compare", label: "Compare" },
   { href: "#mixing", label: "Mixing calculator" },
   { href: "#howto", label: "How to reconstitute" },
   { href: "#storage", label: "Storage" },
   { href: "#dosing", label: "Dosing reference" },
+  { href: "#stacks", label: "Stacks" },
   { href: "#units", label: "Units & labels" },
   { href: "#naming", label: "Name decoder" },
   { href: "#halflife", label: "Half-life" },
@@ -136,6 +140,14 @@ export default function PeptideReferencePage() {
       <section id="library" className="scroll-mt-24">
         <CompoundLibrary />
       </section>
+
+      <RefSection
+        id="compare"
+        title="Compare"
+        note="Up to three compounds across one table — evidence tier, dosing source, half-life and the worth-knowing line, without scrolling between entries."
+      >
+        <ComparePeptides />
+      </RefSection>
 
       <RefSection
         id="mixing"
@@ -312,6 +324,17 @@ export default function PeptideReferencePage() {
           is a recommendation or a protocol.
         </Callout>
         <DosingTable />
+      </RefSection>
+
+      <RefSection
+        id="stacks"
+        title="Stacks"
+        note="Pairings people actually run, with the mechanism behind each, and the combinations worth steering clear of. The warnings name the mechanism so the reasoning extends to cases not listed."
+      >
+        <StacksList />
+
+        <h3 className="pt-4 text-sm font-semibold">Combinations to avoid</h3>
+        <StackWarnings />
       </RefSection>
 
       <RefSection
