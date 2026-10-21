@@ -178,3 +178,113 @@ export function reconstitute(input: ReconstitutionInput): ReconstitutionResult {
     warning,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Blends
+//
+// A blended vial holds two or three peptides in one powder, and the label's
+// total mass hides the split: "10 mg" might be 5 mg + 5 mg or 8 mg + 2 mg,
+// which deliver very different amounts per draw. Components share one solvent
+// volume, so each one's concentration is its own mass over that volume, and a
+// single draw delivers all of them at once in fixed proportion.
+//
+// The question a blend actually poses is the reverse of a single vial: you pick
+// where to draw to, and you need to know what that gives you of each.
+
+export interface BlendComponent {
+  name: string;
+  mg: number;
+}
+
+export interface BlendInput {
+  components: BlendComponent[];
+  solventMl: number;
+  drawUnits: number;
+  vialSizeMl?: number;
+  syringeSizeMl?: number;
+}
+
+export interface BlendComponentResult {
+  name: string;
+  mg: number;
+  /** mg per mL of the finished solution. */
+  concentration: number;
+  /** mcg held in one syringe unit (0.01 mL). */
+  mcgPerUnit: number;
+  /** mcg delivered at the chosen draw. */
+  mcgAtDraw: number;
+  /** Share of the vial's total mass, 0–1. */
+  share: number;
+}
+
+export interface BlendResult {
+  totalMg: number;
+  components: BlendComponentResult[];
+  syringeMaxUnits: number;
+  /** Volume of the chosen draw, in mL. */
+  drawMl: number | null;
+  capacityWarning: string | null;
+  warning: string | null;
+}
+
+export function reconstituteBlend(input: BlendInput): BlendResult {
+  const { components, solventMl, drawUnits } = input;
+  const syringeMaxUnits = Math.round(
+    (input.syringeSizeMl ?? 1) * UNITS_PER_ML
+  );
+
+  const usable = components.filter((c) => c.mg > 0);
+  const totalMg = usable.reduce((sum, c) => sum + c.mg, 0);
+
+  const capacityWarning =
+    input.vialSizeMl && solventMl > input.vialSizeMl
+      ? `${formatNumber(solventMl, 2)} mL will not fit a ${formatNumber(
+          input.vialSizeMl,
+          0
+        )} mL vial. Use a larger vial, or less solvent for a more concentrated mix.`
+      : null;
+
+  const empty: BlendResult = {
+    totalMg,
+    components: [],
+    syringeMaxUnits,
+    drawMl: null,
+    capacityWarning,
+    warning: null,
+  };
+
+  if (!(totalMg > 0) || !(solventMl > 0)) return empty;
+
+  const draw = drawUnits > 0 ? drawUnits : 0;
+
+  const resolved: BlendComponentResult[] = usable.map((c) => {
+    const concentration = c.mg / solventMl;
+    const mcgPerUnit = (concentration / UNITS_PER_ML) * 1000;
+    return {
+      name: c.name,
+      mg: c.mg,
+      concentration,
+      mcgPerUnit,
+      mcgAtDraw: mcgPerUnit * draw,
+      share: c.mg / totalMg,
+    };
+  });
+
+  let warning: string | null = null;
+  if (draw > syringeMaxUnits) {
+    warning = `A ${formatNumber(
+      draw,
+      1
+    )} unit draw is past the ${syringeMaxUnits}-unit mark on this syringe.`;
+  } else if (draw > 0 && draw < 2) {
+    warning =
+      "Under 2 units sits at the very bottom of the barrel, where a small misread changes every component at once.";
+  }
+
+  return {
+    ...empty,
+    components: resolved,
+    drawMl: draw / UNITS_PER_ML,
+    warning,
+  };
+}

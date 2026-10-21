@@ -9,6 +9,7 @@ import { MedicalDisclaimer } from "../disclaimer";
 import { CompoundLibrary } from "./compound-library";
 import { DosingTable } from "./dosing-table";
 import { MixingCalculator } from "./mixing-calculator";
+import { BlendCalculator } from "./blend-calculator";
 import {
   Callout,
   DataTable,
@@ -139,9 +140,11 @@ export default function PeptideReferencePage() {
       <RefSection
         id="mixing"
         title="Mixing calculator"
-        note="Enter what is on your own vial and what you are working out. The calculator converts to a U-100 insulin syringe, where 100 units equals 1 mL and each unit holds 0.01 mL. It does not suggest an amount."
+        note="Enter what is on your own vial. Units are insulin-syringe marks: each one holds 0.01 mL, so a 1 mL barrel reads 0–100. Use the blended-vial calculator below when one vial holds more than one peptide."
       >
         <MixingCalculator />
+
+        <BlendCalculator />
 
         <h3 className="pt-2 text-sm font-semibold">
           The math, if you would rather do it yourself
