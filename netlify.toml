@@ -1,12 +1,17 @@
 [build]
   command = "npm run build"
+  # Must be set and must not be the repo root: the Next.js runtime reads the
+  # build output from here and refuses a publish directory equal to the base
+  # directory. The CLI infers this locally; CI does not.
+  publish = ".next"
 
 [build.environment]
   # Next.js 15 requires Node 18.18+. Pin to a current LTS for reproducible CI builds.
   NODE_VERSION = "20"
 
-# The Next.js runtime manages the publish directory and the serverless/edge
-# functions. Declare it explicitly: the CLI auto-installs it into .netlify/plugins
+# The Next.js runtime turns the build output into the serverless server handler
+# and the edge middleware. Declare it explicitly: the CLI auto-installs it into
+# .netlify/plugins
 # for local `netlify deploy --build`, but CI builds get no such auto-install, and
 # without it `next build` output ships as plain static files with no server
 # handler. Building on Netlify's Linux CI also ensures the correct-platform
