@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { ArrowLeft, Star, Utensils } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { getFoodItems } from "@/lib/nutrition/queries";
@@ -15,17 +16,20 @@ export default async function FoodsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My foods</h1>
-          <p className="mt-1 text-muted-foreground">
-            Your personal food library — favorites float to the top of every list.
-          </p>
-        </div>
-        <Link href="/nutrition" className="text-sm text-primary hover:underline">
-          Back to today
-        </Link>
-      </div>
+      <PageHeader
+        icon={Utensils}
+        title="My foods"
+        description={"Your personal food library — favorites float to the top of every list."}
+        actions={
+          <Link
+            href="/nutrition"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+          >
+            <Icon icon={ArrowLeft} size="sm" />
+            Back to today
+          </Link>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card title="Add a food" className="lg:col-span-1">

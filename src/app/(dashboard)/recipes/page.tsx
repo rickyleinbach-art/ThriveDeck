@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChefHat, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { Icon } from "@/components/ui/icon";
 
 // Placeholder for the recipe browser (PRD § Nutrition: recipes, meal plans,
@@ -9,12 +10,11 @@ import { Icon } from "@/components/ui/icon";
 export default function RecipesPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Recipes</h1>
-        <p className="mt-1 text-muted-foreground">
-          Browse high-protein, budget, and meal-prep recipes.
-        </p>
-      </div>
+      <PageHeader
+        icon={ChefHat}
+        title="Recipes"
+        description="Browse high-protein, budget, and meal-prep recipes."
+      />
 
       <Card>
         <div className="flex flex-col items-start gap-3 py-6">

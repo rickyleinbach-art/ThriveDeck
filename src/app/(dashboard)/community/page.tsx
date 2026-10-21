@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 import { Users } from "lucide-react";
 import { getFeed } from "@/lib/community/queries";
 import {
@@ -56,16 +57,11 @@ export default async function CommunityPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-          <Users className="h-6 w-6 text-primary" />
-          Community
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Share progress, ask questions, and support each other. Be kind, and keep medical
-          advice to your own experience.
-        </p>
-      </div>
+      <PageHeader
+        icon={Users}
+        title="Community"
+        description="Share progress, ask questions, and support each other. Be kind, and keep medical advice to your own experience."
+      />
 
       <CommunityGuidelines />
 

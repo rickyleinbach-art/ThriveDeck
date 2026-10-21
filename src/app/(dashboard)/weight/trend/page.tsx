@@ -1,4 +1,8 @@
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { ArrowLeft, Scale } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { projectedGoalDate } from "@/lib/weight/calculations";
 import { getBodyMetrics, getGoalForMetric } from "@/lib/weight/queries";
 import { TrendChart } from "./trend-chart";
@@ -19,12 +23,20 @@ export default async function WeightTrendPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Trends</h1>
-        <p className="mt-1 text-muted-foreground">
-          Body-composition timeline, from daily entries to monthly averages.
-        </p>
-      </div>
+      <PageHeader
+        icon={Scale}
+        title="Trends"
+        description={"Body-composition timeline, from daily entries to monthly averages."}
+        actions={
+          <Link
+            href="/weight"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+          >
+            <Icon icon={ArrowLeft} size="sm" />
+            Back to Weight
+          </Link>
+        }
+      />
 
       <Card title="Weight">
         <TrendChart

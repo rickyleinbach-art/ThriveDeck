@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { User } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { getProfile } from "@/lib/profile/queries";
 import { ProfileForm } from "./profile-form";
 
@@ -8,13 +10,11 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-        <p className="mt-1 text-muted-foreground">
-          The basics that personalize your metrics — BMI, calorie targets, and
-          how weights and distances are shown.
-        </p>
-      </div>
+      <PageHeader
+        icon={User}
+        title="Profile"
+        description="The basics that personalize your metrics — BMI, calorie targets, and how weights and distances are shown."
+      />
 
       {profile ? (
         <>

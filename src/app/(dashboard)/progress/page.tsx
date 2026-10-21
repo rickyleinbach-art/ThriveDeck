@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Target, Camera, Flag, ArrowRight, type LucideIcon } from "lucide-react";
+import { ArrowRight, Camera, Flag, Target, TrendingUp, type LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { Icon } from "@/components/ui/icon";
 import { METRIC_LABELS } from "@/lib/validations/weight";
 import {
@@ -93,23 +94,27 @@ export default async function ProgressPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Progress</h1>
-          <p className="mt-1 text-muted-foreground">
-            Your photo journey and the milestones along the way.
-          </p>
-        </div>
-        <div className="flex gap-2 text-sm">
-          <Link href="/weight" className="text-primary hover:underline">
-            Add a photo
-          </Link>
-          <span className="text-muted-foreground">·</span>
-          <Link href="/analytics" className="text-primary hover:underline">
-            Charts
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        icon={TrendingUp}
+        title="Progress"
+        description="Your photo journey and the milestones along the way."
+        actions={
+          <>
+            <Link
+              href="/weight"
+              className="rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            >
+              Add a photo
+            </Link>
+            <Link
+              href="/analytics"
+              className="rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            >
+              Charts
+            </Link>
+          </>
+        }
+      />
 
       {activeGoals.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

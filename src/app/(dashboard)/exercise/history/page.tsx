@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Dumbbell } from "lucide-react";
 import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   displayWeight,
@@ -30,17 +31,22 @@ export default async function WorkoutHistoryPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Workout history</h1>
-          <p className="mt-1 text-muted-foreground">
+      <PageHeader
+        icon={Dumbbell}
+        title="Workout history"
+        description={<>
             {history.length} completed workout{history.length === 1 ? "" : "s"}.
-          </p>
-        </div>
-        <Link href="/exercise" className="text-sm text-primary hover:underline">
-          <Icon icon={ArrowLeft} size="sm" className="mr-1 inline align-[-0.2em]" />Back to Exercise
-        </Link>
-      </div>
+          </>}
+        actions={
+          <Link
+            href="/exercise"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+          >
+            <Icon icon={ArrowLeft} size="sm" />
+            Back to Exercise
+          </Link>
+        }
+      />
 
       <Card>
         {history.length === 0 ? (

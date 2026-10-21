@@ -1,5 +1,7 @@
 import { ScoreCard } from "@/components/charts/score-card";
 import { Card } from "@/components/ui/card";
+import { LineChart } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { getAnalyticsData } from "@/lib/analytics/queries";
 import { computeScores, weightInsights } from "@/lib/analytics/scores";
 import { getProfile } from "@/lib/profile/queries";
@@ -37,13 +39,11 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-        <p className="mt-1 text-muted-foreground">
-          Every tracked series, from daily detail to yearly trends. Weekly scores summarize the
-          last 7 days.
-        </p>
-      </div>
+      <PageHeader
+        icon={LineChart}
+        title="Analytics"
+        description="Every tracked series, from daily detail to yearly trends. Weekly scores summarize the last 7 days."
+      />
 
       {/* Weekly scores */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

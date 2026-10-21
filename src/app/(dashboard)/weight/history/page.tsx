@@ -4,6 +4,9 @@ import { METRIC_LABELS, METRIC_TYPES, type MetricType } from "@/lib/validations/
 import { getBodyMetrics } from "@/lib/weight/queries";
 import { deleteBodyMetricFormAction } from "@/lib/weight/actions";
 import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { ArrowLeft, Scale } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 
 function isMetricType(value: string): value is MetricType {
@@ -22,10 +25,20 @@ export default async function WeightHistoryPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">History</h1>
-        <p className="mt-1 text-muted-foreground">Every entry you&apos;ve logged.</p>
-      </div>
+      <PageHeader
+        icon={Scale}
+        title="History"
+        description={"Every entry you&apos;ve logged."}
+        actions={
+          <Link
+            href="/weight"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+          >
+            <Icon icon={ArrowLeft} size="sm" />
+            Back to Weight
+          </Link>
+        }
+      />
 
       <div className="flex flex-wrap gap-2">
         <Link

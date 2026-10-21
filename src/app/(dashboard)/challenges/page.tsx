@@ -1,4 +1,5 @@
 import { Trophy, Flame, Dumbbell, CalendarCheck } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { getChallengesData } from "@/lib/challenges/queries";
 import { getEntitlements } from "@/lib/subscription/queries";
 import { UpgradeWall } from "@/components/upgrade-gate";
@@ -39,13 +40,11 @@ export default async function ChallengesPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-            <Trophy className="h-6 w-6 text-primary" />
-            Challenges
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            Join a challenge, track it automatically from what you log, and climb the leaderboard.
-          </p>
+          <PageHeader
+            icon={Trophy}
+            title="Challenges"
+            description="Join a challenge, track it automatically from what you log, and climb the leaderboard."
+          />
         </div>
         <UpgradeWall
           title="Challenges are a Pro feature"
@@ -65,13 +64,11 @@ export default async function ChallengesPage() {
       <ChallengeAutoSync />
 
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-          <Trophy className="h-6 w-6 text-primary" />
-          Challenges
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Join a challenge, track it automatically from what you log, and climb the leaderboard.
-        </p>
+        <PageHeader
+          icon={Trophy}
+          title="Challenges"
+          description="Join a challenge, track it automatically from what you log, and climb the leaderboard."
+        />
       </div>
 
       {/* Level / XP */}

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Scale } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { METRIC_LABELS } from "@/lib/validations/weight";
 import { calculateBmi, bmiCategory } from "@/lib/weight/calculations";
 import {
@@ -35,23 +37,27 @@ export default async function WeightPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Weight</h1>
-          <p className="mt-1 text-muted-foreground">
-            Log today&apos;s numbers and keep an eye on your trend.
-          </p>
-        </div>
-        <div className="flex gap-2 text-sm">
-          <Link href="/weight/history" className="text-primary hover:underline">
-            History
-          </Link>
-          <span className="text-muted-foreground">·</span>
-          <Link href="/weight/trend" className="text-primary hover:underline">
-            Trends
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        icon={Scale}
+        title="Weight"
+        description="Log today&apos;s numbers and keep an eye on your trend."
+        actions={
+          <>
+            <Link
+              href="/weight/history"
+              className="rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            >
+              History
+            </Link>
+            <Link
+              href="/weight/trend"
+              className="rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            >
+              Trends
+            </Link>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card title="Current weight">

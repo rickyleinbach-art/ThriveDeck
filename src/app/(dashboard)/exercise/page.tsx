@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Dumbbell } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   displayWeight,
@@ -60,27 +62,33 @@ export default async function ExercisePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Exercise</h1>
-          <p className="mt-1 text-muted-foreground">
-            Build workouts, log sets, track PRs.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Link href="/exercise/library" className="text-primary hover:underline">
-            Library
-          </Link>
-          <span className="text-muted-foreground">·</span>
-          <Link href="/exercise/history" className="text-primary hover:underline">
-            History
-          </Link>
-          <span className="text-muted-foreground">·</span>
-          <Link href="/exercise/prs" className="text-primary hover:underline">
-            PRs
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        icon={Dumbbell}
+        title="Exercise"
+        description="Build workouts, log sets, track PRs."
+        actions={
+          <>
+            <Link
+              href="/exercise/library"
+              className="rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            >
+              Library
+            </Link>
+            <Link
+              href="/exercise/history"
+              className="rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            >
+              History
+            </Link>
+            <Link
+              href="/exercise/prs"
+              className="rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            >
+              PRs
+            </Link>
+          </>
+        }
+      />
 
       {activeWorkout && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/40 bg-primary/5 px-5 py-4">

@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Utensils } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { dayTotals } from "@/lib/nutrition/calculations";
@@ -145,43 +146,55 @@ export default async function NutritionPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Nutrition</h1>
-          <p className="mt-1 text-muted-foreground">{formatDay(date)}</p>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Link
-            href={`/nutrition?date=${shiftDate(date, -1)}`}
-            className="rounded-lg border border-border px-3 py-1.5 hover:bg-accent"
-            aria-label="Previous day"
-          >
-            <Icon icon={ChevronLeft} size="sm" />
-          </Link>
-          {date !== today && (
-            <Link href="/nutrition" className="text-primary hover:underline">
-              Today
-            </Link>
-          )}
-          {date < today && (
+      <PageHeader
+        icon={Utensils}
+        title="Nutrition"
+        description={formatDay(date)}
+        actions={
+          <>
+            {/* Day stepper reads as one control, so the arrows and the
+                "Today" reset sit in a single bordered group. */}
+            <div className="flex items-center gap-1 rounded-lg border border-border p-1">
+              <Link
+                href={`/nutrition?date=${shiftDate(date, -1)}`}
+                className="rounded-md px-2 py-1 text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+                aria-label="Previous day"
+              >
+                <Icon icon={ChevronLeft} size="sm" />
+              </Link>
+              {date !== today && (
+                <Link
+                  href="/nutrition"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-primary transition hover:bg-accent"
+                >
+                  Today
+                </Link>
+              )}
+              {date < today && (
+                <Link
+                  href={`/nutrition?date=${shiftDate(date, 1)}`}
+                  className="rounded-md px-2 py-1 text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+                  aria-label="Next day"
+                >
+                  <Icon icon={ChevronRight} size="sm" />
+                </Link>
+              )}
+            </div>
             <Link
-              href={`/nutrition?date=${shiftDate(date, 1)}`}
-              className="rounded-lg border border-border px-3 py-1.5 hover:bg-accent"
-              aria-label="Next day"
+              href="/nutrition/foods"
+              className="rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
             >
-              <Icon icon={ChevronRight} size="sm" />
+              My foods
             </Link>
-          )}
-          <span className="text-muted-foreground">·</span>
-          <Link href="/nutrition/foods" className="text-primary hover:underline">
-            My foods
-          </Link>
-          <span className="text-muted-foreground">·</span>
-          <Link href="/nutrition/targets" className="text-primary hover:underline">
-            Targets
-          </Link>
-        </div>
-      </div>
+            <Link
+              href="/nutrition/targets"
+              className="rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            >
+              Targets
+            </Link>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MacroCard

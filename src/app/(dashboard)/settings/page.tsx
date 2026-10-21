@@ -6,6 +6,8 @@ import { getSubscription } from "@/lib/subscription/queries";
 import { DEFAULT_NOTIFICATION_PREFS } from "@/lib/validations/profile";
 import { DEFAULT_HEALTH_PROFILE } from "@/lib/validations/onboarding";
 import { Card } from "@/components/ui/card";
+import { Settings } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { SettingsClient } from "./settings-client";
 
 export default async function SettingsPage() {
@@ -23,12 +25,11 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-1 text-muted-foreground">
-          Membership, appearance, units, and notification preferences.
-        </p>
-      </div>
+      <PageHeader
+        icon={Settings}
+        title="Settings"
+        description="Membership, appearance, units, and notification preferences."
+      />
 
       <Card title="Membership">
         <div className="flex items-center justify-between gap-4">

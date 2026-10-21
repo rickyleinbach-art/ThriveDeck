@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { ArrowLeft, Utensils } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { ageFromDateOfBirth } from "@/lib/nutrition/calculations";
 import { getCalculatorProfileInfo, getNutritionTarget } from "@/lib/nutrition/queries";
 import { CalculatorForm } from "./calculator-form";
@@ -12,17 +15,20 @@ export default async function TargetsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Daily targets</h1>
-          <p className="mt-1 text-muted-foreground">
-            Estimate your calorie and macro targets, then tune them to taste.
-          </p>
-        </div>
-        <Link href="/nutrition" className="text-sm text-primary hover:underline">
-          Back to today
-        </Link>
-      </div>
+      <PageHeader
+        icon={Utensils}
+        title="Daily targets"
+        description={"Estimate your calorie and macro targets, then tune them to taste."}
+        actions={
+          <Link
+            href="/nutrition"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+          >
+            <Icon icon={ArrowLeft} size="sm" />
+            Back to today
+          </Link>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card title="Current targets" className="lg:col-span-1">

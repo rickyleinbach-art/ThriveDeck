@@ -1,5 +1,6 @@
-import { Flame, Trash2 } from "lucide-react";
+import { Flame, ListChecks, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { getHabitLogs, getHabits } from "@/lib/habits/queries";
@@ -62,12 +63,7 @@ export default async function HabitsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Habits</h1>
-        <p className="mt-1 text-muted-foreground">
-          Small daily wins, tracked. Check things off, keep the streaks alive.
-        </p>
-      </div>
+      <PageHeader icon={ListChecks} title="Habits" description="Small daily wins, tracked. Check things off, keep the streaks alive." />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card title="Today's score">

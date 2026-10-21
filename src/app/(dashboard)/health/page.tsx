@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { X } from "lucide-react";
+import { HeartPulse, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import {
@@ -56,12 +57,7 @@ export default async function HealthPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Health</h1>
-        <p className="mt-1 text-muted-foreground">
-          Vitals, labs, medications, and history — your record, in one place.
-        </p>
-      </div>
+      <PageHeader icon={HeartPulse} title="Health" description="Vitals, labs, medications, and history — your record, in one place." />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {HEALTH_METRIC_KINDS.map((kind) => {
