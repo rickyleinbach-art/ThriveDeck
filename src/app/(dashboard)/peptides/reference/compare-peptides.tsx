@@ -47,8 +47,18 @@ const ROWS: { label: string; render: (c: PeptideReference) => React.ReactNode }[
 // Pick up to three compounds and read them across one table. The point is
 // the rows you would otherwise scroll between: evidence tier, dosing source,
 // half-life, and the worth-knowing line.
-export function ComparePeptides() {
-  const [slugs, setSlugs] = useState<(string | null)[]>([null, null, null]);
+export function ComparePeptides({
+  initialSlugs = [],
+}: {
+  /** Pre-fill the columns, e.g. arriving from a library entry. */
+  initialSlugs?: (string | null)[];
+}) {
+  const [slugs, setSlugs] = useState<(string | null)[]>(() =>
+    Array.from({ length: SLOTS }, (_, i) => {
+      const s = initialSlugs[i];
+      return s && BY_SLUG.has(s) ? s : null;
+    })
+  );
 
   const picked = useMemo(
     () => slugs.map((s) => (s ? BY_SLUG.get(s) ?? null : null)),

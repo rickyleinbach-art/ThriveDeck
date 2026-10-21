@@ -1,7 +1,9 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, Columns3, Syringe } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Icon } from "@/components/ui/icon";
 import type { PeptideReference } from "@/lib/peptides/reference";
 import { TierBadge } from "./tier-badge";
 
@@ -188,6 +190,27 @@ export function CompoundEntry({
           <Block title="Worth knowing">
             <p>{compound.worthKnowing}</p>
           </Block>
+
+          {/* Where to go next with this compound. The entry is the thing you
+              read; these are the things you do. */}
+          <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+            {compound.mixes && compound.mixes.length > 0 && (
+              <Link
+                href={`/peptides/reference/guide?peptide=${compound.slug}`}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+              >
+                <Icon icon={Syringe} size="sm" />
+                Reconstitute this
+              </Link>
+            )}
+            <Link
+              href={`/peptides/reference/compare?a=${compound.slug}`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            >
+              <Icon icon={Columns3} size="sm" />
+              Compare
+            </Link>
+          </div>
         </div>
       )}
     </article>

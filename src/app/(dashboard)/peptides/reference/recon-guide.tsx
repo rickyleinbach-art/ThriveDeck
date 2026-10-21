@@ -103,15 +103,29 @@ function Chip({
 // after the first is seeded from the library entry — solvent, the vial sizes
 // it is sold in, the documented dose — so the only thing typed is the dose,
 // and that is offered as the figures from the published schedule.
-export function ReconGuide() {
+export function ReconGuide({
+  initialSlug = null,
+}: {
+  /** Pre-select a compound, e.g. arriving from a library entry. */
+  initialSlug?: string | null;
+}) {
+  // Seed state the same way pick() would, so a deep link lands on step 2
+  // with the vial already filled in rather than on an empty step 1.
+  const initial = initialSlug ? BY_SLUG.get(initialSlug) ?? null : null;
+  const initialVial = initial?.mixes?.[0] ? parseVial(initial.mixes[0].vial) : null;
+
   const [query, setQuery] = useState("");
-  const [slug, setSlug] = useState<string | null>(null);
-  const [vialStrength, setVialStrength] = useState("");
-  const [vialUnit, setVialUnit] = useState<VialUnit>("mg");
+  const [slug, setSlug] = useState<string | null>(initial?.slug ?? null);
+  const [vialStrength, setVialStrength] = useState(
+    initialVial ? String(initialVial.amount) : ""
+  );
+  const [vialUnit, setVialUnit] = useState<VialUnit>(initialVial?.unit ?? "mg");
   const [vialSizeMl, setVialSizeMl] = useState("3");
   const [syringeSizeMl, setSyringeSizeMl] = useState("1");
   const [targetAmount, setTargetAmount] = useState("");
-  const [targetUnit, setTargetUnit] = useState<TargetUnit>("mcg");
+  const [targetUnit, setTargetUnit] = useState<TargetUnit>(
+    initialVial?.unit === "iu" ? "iu" : "mcg"
+  );
 
   const compound = slug ? BY_SLUG.get(slug) ?? null : null;
 

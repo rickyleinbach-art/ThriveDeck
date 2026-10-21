@@ -51,7 +51,7 @@ function Component({ slug, label }: { slug?: string; label?: string }) {
   if (!c) return <span className="font-medium">{label}</span>;
   return (
     <a
-      href={`#compound-${c.slug}`}
+      href={`/peptides/reference#compound-${c.slug}`}
       className="inline-flex items-center gap-1.5 font-medium underline-offset-4 hover:underline"
     >
       {c.name}
